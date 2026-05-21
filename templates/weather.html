@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Dashboard</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #050e08;
+      --c1: #091510;
+      --c2: #0d1f14;
+      --c3: #132b1a;
+      --border: rgba(34, 197, 94, .14);
+      --g1: #22c55e;
+      --g2: #4ade80;
+      --g3: #86efac;
+      --t0: #f0fdf4;
+      --t1: #d1fae5;
+      --t2: #6ee7b7;
+      --t3: #34d399;
+      --t4: #4a7c5e;
+      --sky: #93c5fd;
+      --f-display: 'Syne', sans-serif;
+      --f-body: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      background: var(--bg);
+      font-family: var(--f-body);
+      color: var(--t1);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(ellipse 65% 45% at 90% 0%, rgba(34, 197, 94, .10) 0%, transparent 55%),
+        radial-gradient(ellipse 45% 30% at 5% 100%, rgba(34, 197, 94, .07) 0%, transparent 55%);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1.5px solid var(--border);
+      background: rgba(5, 14, 8, .92);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .logo {
+      font-family: var(--f-display);
+      font-weight: 800;
+      font-size: 20px;
+      background: linear-gradient(135deg, var(--g2), var(--g1));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .logo i {
+      font-size: 20px;
+      -webkit-text-fill-color: var(--g1)
+    }
+
+    .search-wrap {
+      flex: 1;
+      max-width: 420px;
+      position: relative;
+    }
+
+    .search-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--t4);
+      font-size: 14px;
+      pointer-events: none
+    }
+
+    .search-wrap input {
+      width: 100%;
+      background: var(--c2);
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: 10px 18px 10px 42px;
+      color: var(--t1);
+      font-family: var(--f-body);
+      font-size: 13px;
+      font-weight: 500;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+    }
+
+    .search-wrap input::placeholder {
+      color: var(--t4);
+      font-weight: 400
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--g1);
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, .12)
+    }
+
+    .loc-btn {
+      background: var(--c2);
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      padding: 8px 16px;
+      color: var(--t2);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+
+    .loc-btn:hover {
+      border-color: var(--g1);
+      color: var(--g2);
+      background: var(--c3)
+    }
+
+    .loc-btn.loading {
+      opacity: .6;
+      pointer-events: none
+    }
+
+    /* ── CARD ── */
+    .card-base {
+      background: var(--c1);
+      border: 1.5px solid var(--border);
+      border-radius: 22px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-base::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 95% 0%, rgba(34, 197, 94, .06) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    /* ── TOGGLE ── */
+    .tog {
+      background: var(--c2);
+      border: 1.5px solid var(--border);
+      border-radius: 50px;
+      display: flex;
+      gap: 2px;
+      padding: 3px;
+    }
+
+    .tog button {
+      background: none;
+      border: none;
+      border-radius: 50px;
+      padding: 5px 16px;
+      font-family: var(--f-body);
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--t4);
+      cursor: pointer;
+      transition: all .2s;
+      letter-spacing: .4px;
+    }
+
+    .tog button.active {
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      color: #032010;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, .4);
+    }
+
+    /* ── LOADER ── */
+    .loader-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 14, 8, .85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      backdrop-filter: blur(6px);
+      transition: opacity .4s;
+    }
+
+    .loader-overlay.hidden {
+      opacity: 0;
+      pointer-events: none
+    }
+
+    .loader-ring {
+      width: 56px;
+      height: 56px;
+      border: 3px solid var(--c3);
+      border-top-color: var(--g1);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 14px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    .loader-text {
+      font-size: 13px;
+      color: var(--t3);
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase
+    }
+
+    /* ── CITY BADGE ── */
+    .city-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #fff, #e6faf0);
+      color: #06200d;
+      border-radius: 50px;
+      padding: 6px 15px 6px 10px;
+      font-size: 12.5px;
+      font-weight: 800;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .22), 0 0 0 1px rgba(34, 197, 94, .2);
+    }
+
+    .city-badge i {
+      color: #16a34a;
+      font-size: 13px
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--g1);
+      display: inline-block;
+      animation: livePulse 1.6s infinite;
+    }
+
+    @keyframes livePulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, .6)
+      }
+
+      50% {
+        box-shadow: 0 0 0 5px rgba(34, 197, 94, 0)
+      }
+    }
+
+    /* ── TEMP ── */
+    .temp-num {
+      font-family: var(--f-display);
+      font-size: 78px;
+      font-weight: 800;
+      letter-spacing: -5px;
+      line-height: 1;
+      background: linear-gradient(160deg, var(--t0) 20%, var(--g3) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .temp-sym {
+      font-family: var(--f-display);
+      font-size: 26px;
+      font-weight: 700;
+      margin-top: 14px;
+      background: linear-gradient(135deg, var(--g2), var(--g1));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .feels-text {
+      font-size: 12.5px;
+      color: var(--t2);
+      font-weight: 500
+    }
+
+    .feels-text strong {
+      color: var(--g2);
+      font-weight: 700
+    }
+
+    .hilo span {
+      font-size: 12px;
+      color: var(--t4);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 2px
+    }
+
+    .hilo span b {
+      color: var(--t2);
+      font-weight: 800
+    }
+
+    .sun-strip {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr
+    }
+
+    .si {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 8px 4px;
+      border-right: 1px solid var(--border)
+    }
+
+    .si:last-child {
+      border-right: none
+    }
+
+    .si .sl {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--t4)
+    }
+
+    .si .sv {
+      font-family: var(--f-display);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--t0);
+      letter-spacing: -.5px
+    }
+
+    .si .sa {
+      font-size: 9px;
+      color: var(--t3);
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase
+    }
+
+    /* ── FC LABEL ── */
+    .fc-label {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: var(--t2);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .fc-label i {
+      color: var(--g1);
+      font-size: 14px
+    }
+
+    /* ── HOURLY ── */
+    .hourly-scroll {
+      display: flex;
+      gap: 9px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .hourly-scroll::-webkit-scrollbar {
+      display: none
+    }
+
+    .hp {
+      flex: 0 0 auto;
+      background: var(--c2);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 11px 14px;
+      min-width: 80px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      transition: all .22s;
+    }
+
+    .hp:hover {
+      border-color: rgba(34, 197, 94, .4);
+      background: var(--c3)
+    }
+
+    .hp.active {
+      background: linear-gradient(160deg, #163f22, #0a2214);
+      border-color: var(--g1);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, .5), 0 6px 20px rgba(34, 197, 94, .18);
+    }
+
+    .hp .ht {
+      font-size: 9.5px;
+      color: var(--t4);
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase
+    }
+
+    .hp.active .ht {
+      color: var(--t3)
+    }
+
+    .hp .hi {
+      width: 36px;
+      height: 36px;
+      font-size: 28px;
+      line-height: 36px
+    }
+
+    .hp .hv {
+      font-family: var(--f-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--t0)
+    }
+
+    .hp .hd {
+      font-size: 9.5px;
+      color: var(--t4);
+      font-weight: 600;
+      max-width: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .hp.active .hd {
+      color: var(--t2)
+    }
+
+    /* ── WEEKLY PILLS (mirrors hourly .hp style) ── */
+    .weekly-scroll {
+      display: flex;
+      gap: 9px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .weekly-scroll::-webkit-scrollbar {
+      display: none
+    }
+
+    .wp {
+      flex: 0 0 auto;
+      background: var(--c2);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 11px 14px;
+      min-width: 88px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      transition: all .22s;
+    }
+
+    .wp:hover {
+      border-color: rgba(34, 197, 94, .4);
+      background: var(--c3)
+    }
+
+    .wp.hi-card {
+      background: linear-gradient(160deg, #163f22, #0a2214);
+      border-color: var(--g1);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, .5), 0 6px 20px rgba(34, 197, 94, .18);
+    }
+
+    .wp .wt {
+      font-size: 9.5px;
+      color: var(--t4);
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase
+    }
+
+    .wp.hi-card .wt {
+      color: var(--t3)
+    }
+
+    .wp .wi2 {
+      width: 36px;
+      height: 36px;
+      font-size: 28px;
+      line-height: 36px
+    }
+
+    .wp .wv {
+      font-family: var(--f-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--t0)
+    }
+
+    .wp .wd {
+      font-size: 9.5px;
+      color: var(--t4);
+      font-weight: 600;
+      max-width: 76px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .wp.hi-card .wd {
+      color: var(--t2)
+    }
+
+    .wp .wb {
+      height: 4px;
+      width: 100%;
+      background: var(--c3);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 3px;
+    }
+
+    .wp .wbf {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--g1), var(--g3));
+    }
+
+    /* ── HIGHLIGHTS ── */
+    .hl-title {
+      font-family: var(--f-display);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -.2px;
+      color: var(--t0)
+    }
+
+    .hb {
+      background: var(--c2);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color .22s, transform .22s;
+    }
+
+    .hb:hover {
+      border-color: rgba(34, 197, 94, .35);
+      transform: translateY(-2px)
+    }
+
+    .hb::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 90% 5%, rgba(34, 197, 94, .06) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hb-lbl {
+      font-size: 9.5px;
+      color: var(--t3);
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .hb-val {
+      font-family: var(--f-display);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--t0);
+      letter-spacing: -1px
+    }
+
+    .hb-sub {
+      font-size: 10px;
+      color: var(--t4);
+      font-weight: 600
+    }
+
+    /* ── STAT PILLS ── */
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--c2);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 16px;
+    }
+
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--c3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--t4);
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase
+    }
+
+    .stat-val {
+      font-family: var(--f-display);
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--t0)
+    }
+
+    /* ── PROGRESS BAR ── */
+    .prog-bar {
+      height: 5px;
+      background: var(--c3);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 6px
+    }
+
+    .prog-fill {
+      height: 100%;
+      border-radius: 10px;
+      background: linear-gradient(90deg, var(--g1), var(--g3));
+      transition: width .6s ease;
+    }
+
+    /* ── WIND BARS ── */
+    .wind-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 52px;
+    }
+
+    .wbar {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      background: linear-gradient(to top, var(--g1), rgba(34, 197, 94, .2));
+      min-height: 4px;
+      animation: barsIn .5s ease both;
+    }
+
+    @keyframes barsIn {
+      from {
+        transform: scaleY(0);
+        transform-origin: bottom
+      }
+
+      to {
+        transform: scaleY(1)
+      }
+    }
+
+    /* ── AQI ── */
+    .aqi-val {
+      font-family: var(--f-display);
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--t0)
+    }
+
+    .aqi-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 10px;
+      border-radius: 50px;
+      display: inline-block;
+      margin-top: 2px
+    }
+
+    .aqi-good {
+      background: rgba(34, 197, 94, .18);
+      color: var(--g2)
+    }
+
+    .aqi-moderate {
+      background: rgba(234, 179, 8, .18);
+      color: #fbbf24
+    }
+
+    .aqi-poor {
+      background: rgba(239, 68, 68, .18);
+      color: #f87171
+    }
+
+    /* ── RAIN BARS ── */
+    .rain-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      height: 66px;
+      margin-top: auto
+    }
+
+    .rbg {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex: 1
+    }
+
+    .rbs {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 52px
+    }
+
+    .rb {
+      width: 8px;
+      border-radius: 4px 4px 0 0;
+      background: var(--g1)
+    }
+
+    .rb.d {
+      background: rgba(34, 197, 94, .18)
+    }
+
+    .rbd {
+      font-size: 9px;
+      color: var(--t4);
+      font-weight: 700
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--t4)
+    }
+
+    .empty-state i {
+      font-size: 56px;
+      color: var(--c3);
+      margin-bottom: 16px;
+      display: block
+    }
+
+    .empty-state h5 {
+      font-family: var(--f-display);
+      font-size: 18px;
+      color: var(--t2);
+      font-weight: 700
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      margin-top: 6px
+    }
+
+    /* ── CONTENT ── */
+    .content {
+      padding: 20px 28px 36px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 5px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--c3);
+      border-radius: 10px
+    }
+
+    /* ── TOAST ── */
+    .toast-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99
+    }
+
+    .toast-msg {
+      background: var(--c2);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .4);
+      animation: toastIn .3s ease;
+      margin-top: 8px
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .toast-msg i {
+      color: var(--g1)
+    }
+
+    /* ── WEATHER ICON EMOJI MAP ── */
+    .wi {
+      font-size: 40px;
+      line-height: 1
+    }
+
+    .sun-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .si {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .si:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .img {
+      width: 30px;
+      height: 30px;
+      object-fit: contain;
+    }
+
+    .sl {
+      font-size: 14px;
+      font-weight: 500;
+      color: #eaeaea;
+      flex: 1;
+      text-align: left;
+    }
+
+    .sv {
+      font-size: 16px;
+      font-weight: 600;
+      color: #ffffff;
+      min-width: 60px;
+      text-align: right;
+    }
+
+    .sa {
+      font-size: 12px;
+      font-weight: 500;
+      color: #ffd36b;
+      margin-left: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .sun-strip {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .si {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+
+    /* ══════════════════════════════════════
+   RESPONSIVE — TABLET (≤600px)
+══════════════════════════════════════ */
+    @media (max-width: 600px) {
+      .content {
+        padding: 14px 16px 28px;
+      }
+
+      .topbar {
+        padding: 10px 14px;
+        gap: 10px;
+      }
+
+      .logo {
+        font-size: 17px;
+      }
+
+      .temp-num {
+        font-size: 60px;
+        letter-spacing: -3px;
+      }
+
+      .col-lg-5,
+      .col-lg-7 {
+        width: 100%;
+      }
+
+      .row.g-3>[class*="col-6"] {
+        width: 50%;
+      }
+
+      .hb-val {
+        font-size: 22px;
+      }
+
+      .hp {
+        min-width: 70px;
+        padding: 10px 10px;
+      }
+
+      .wp {
+        min-width: 78px;
+        padding: 10px 10px;
+      }
+
+      .wind-bars {
+        height: 44px;
+      }
+    }
+
+    /* ══════════════════════════════════════
+   RESPONSIVE — MOBILE (≤420px)
+══════════════════════════════════════ */
+    @media (max-width: 420px) {
+      .content {
+        padding: 10px 12px 24px;
+      }
+
+      /* Topbar: stack into 2 rows */
+      .topbar {
+        flex-wrap: wrap;
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      .topbar .logo {
+        flex: 1;
+        font-size: 16px;
+      }
+
+      /* Hide "Locate Me" text, keep icon */
+      #geoBtn span,
+      #geoBtn {
+        padding: 8px 12px;
+      }
+
+      .topbar form {
+        width: 100%;
+        max-width: 100% !important;
+        order: 3;
+        margin: 0 !important;
+      }
+
+      .search-wrap {
+        max-width: 100%;
+      }
+
+      /* Main temp */
+      .temp-num {
+        font-size: 52px;
+        letter-spacing: -2px;
+      }
+
+      .temp-sym {
+        font-size: 20px;
+        margin-top: 10px;
+      }
+
+      /* Main weather icon smaller */
+      .wi {
+        font-size: 48px;
+      }
+
+      /* Highlight grid: single column on mobile */
+      .row.g-3>[class*="col-6"] {
+        width: 100%;
+      }
+
+      .hb-val {
+        font-size: 20px;
+      }
+
+      .aqi-val {
+        font-size: 24px;
+      }
+
+      /* Sun strip: stack vertically */
+      .sun-strip {
+        flex-direction: column;
+        gap: 0;
+        padding: 10px 12px;
+      }
+
+      .si {
+        width: 100%;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border);
+        padding: 10px 4px;
+        justify-content: flex-start;
+        gap: 12px;
+      }
+
+      .si:last-child {
+        border-bottom: none;
+      }
+
+      .sl {
+        font-size: 13px;
+      }
+
+      .sv {
+        font-size: 14px;
+        min-width: auto;
+        margin-left: auto;
+      }
+
+      /* Hourly & weekly pills */
+      .hp {
+        min-width: 64px;
+        padding: 9px 8px;
+      }
+
+      .wp {
+        min-width: 72px;
+        padding: 9px 8px;
+      }
+
+      .hp .hi,
+      .wp .wi2 {
+        width: 30px;
+        height: 30px;
+        font-size: 24px;
+        line-height: 30px;
+      }
+
+      .hb {
+        padding: 12px 12px;
+      }
+
+      .card-base {
+        padding: 16px 14px;
+        border-radius: 16px;
+      }
+
+      .hl-title {
+        font-size: 15px;
+      }
+
+      .wind-bars {
+        height: 38px;
+      }
+
+      /* City badge */
+      .city-badge {
+        font-size: 11px;
+        padding: 5px 10px 5px 8px;
+      }
+
+      .tog button {
+        padding: 4px 12px;
+        font-size: 11px;
+      }
+    }
+
+    /* ══════════════════════════════════════
+   RESPONSIVE — TABLET (≤600px)
+══════════════════════════════════════ */
+    @media (max-width: 600px) {
+      .content {
+        padding: 14px 16px 28px;
+      }
+
+      .topbar {
+        padding: 10px 14px;
+        gap: 10px;
+      }
+
+      .logo {
+        font-size: 17px;
+      }
+
+      .temp-num {
+        font-size: 60px;
+        letter-spacing: -3px;
+      }
+
+      .col-lg-5,
+      .col-lg-7 {
+        width: 100%;
+      }
+
+      .row.g-3>[class*="col-6"] {
+        width: 50%;
+      }
+
+      .hb-val {
+        font-size: 22px;
+      }
+
+      .hp {
+        min-width: 70px;
+        padding: 10px 10px;
+      }
+
+      .wp {
+        min-width: 78px;
+        padding: 10px 10px;
+      }
+
+      .wind-bars {
+        height: 44px;
+      }
+
+      /* ── SUN STRIP: Sunrise + Sunset on row 1, Condition on row 2 ── */
+      .sun-strip {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding: 10px 14px;
+        border-radius: 14px;
+      }
+
+      .sun-strip-row1 {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+      }
+
+      .sun-strip-row1 .si {
+        flex: 1;
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        padding: 10px 10px;
+        justify-content: flex-start;
+        gap: 10px;
+      }
+
+      .sun-strip-row1 .si:last-child {
+        border-right: none;
+      }
+
+      .sun-strip-row2 {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+      }
+
+      .sun-strip-row2 .si {
+        flex: 1;
+        border-right: none;
+        padding: 10px 10px;
+        justify-content: flex-start;
+        gap: 10px;
+      }
+
+      .sl {
+        font-size: 13px;
+      }
+
+      .sv {
+        font-size: 14px;
+        min-width: auto;
+        margin-left: auto;
+      }
+    }
+
+    /* ══════════════════════════════════════
+   RESPONSIVE — MOBILE (≤420px)
+══════════════════════════════════════ */
+    @media (max-width: 420px) {
+      .content {
+        padding: 10px 12px 24px;
+      }
+
+      /* Topbar: stack into 2 rows */
+      .topbar {
+        flex-wrap: wrap;
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      .topbar .logo {
+        flex: 1;
+        font-size: 16px;
+      }
+
+      #geoBtn {
+        padding: 8px 12px;
+      }
+
+      .topbar form {
+        width: 100%;
+        max-width: 100% !important;
+        order: 3;
+        margin: 0 !important;
+      }
+
+      .search-wrap {
+        max-width: 100%;
+      }
+
+      /* Main temp */
+      .temp-num {
+        font-size: 52px;
+        letter-spacing: -2px;
+      }
+
+      .temp-sym {
+        font-size: 20px;
+        margin-top: 10px;
+      }
+
+      .wi {
+        font-size: 48px;
+      }
+
+      /* Highlight grid: single column on mobile */
+      .row.g-3>[class*="col-6"] {
+        width: 100%;
+      }
+
+      .hb-val {
+        font-size: 20px;
+      }
+
+      .aqi-val {
+        font-size: 24px;
+      }
+
+      /* ── SUN STRIP: Sunrise + Sunset on row 1, Condition alone on row 2 ── */
+      .sun-strip {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding: 8px 12px;
+        border-radius: 14px;
+      }
+
+      .sun-strip-row1 {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+      }
+
+      .sun-strip-row1 .si {
+        flex: 1;
+        border-right: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        border-radius: 0;
+        padding: 9px 8px;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sun-strip-row1 .si:last-child {
+        border-right: none;
+      }
+
+      .sun-strip-row2 {
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+      }
+
+      .sun-strip-row2 .si {
+        flex: 1;
+        border-right: none;
+        border-radius: 0;
+        padding: 9px 8px;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .sl {
+        font-size: 12px;
+      }
+
+      .sv {
+        font-size: 13px;
+        min-width: auto;
+        margin-left: auto;
+      }
+
+      .sa {
+        font-size: 11px;
+      }
+
+      .img {
+        width: 24px;
+        height: 24px;
+      }
+
+      /* Hourly & weekly pills */
+      .hp {
+        min-width: 64px;
+        padding: 9px 8px;
+      }
+
+      .wp {
+        min-width: 72px;
+        padding: 9px 8px;
+      }
+
+      .hp .hi,
+      .wp .wi2 {
+        width: 30px;
+        height: 30px;
+        font-size: 24px;
+        line-height: 30px;
+      }
+
+      .hb {
+        padding: 12px 12px;
+      }
+
+      .card-base {
+        padding: 16px 14px;
+        border-radius: 16px;
+      }
+
+      .hl-title {
+        font-size: 15px;
+      }
+
+      .wind-bars {
+        height: 38px;
+      }
+
+      .city-badge {
+        font-size: 11px;
+        padding: 5px 10px 5px 8px;
+      }
+
+      .tog button {
+        padding: 4px 12px;
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ══ LOADER ══ -->
+  <div class="loader-overlay hidden" id="loader">
+    <div class="loader-ring"></div>
+    <div class="loader-text" id="loaderText">Loading…</div>
+  </div>
+
+  <!-- ══ TOPBAR ══ -->
+  <div class="topbar">
+    <div class="logo">
+      <i class="bi bi-cloud-sun-fill"></i> AgroAI
+    </div>
+
+    <form method="GET" action="/weather" class="d-flex align-items-center gap-2"
+      style="flex:1;max-width:460px;margin:0 auto;" onsubmit="showLoader('Fetching weather…')">
+      <div class="search-wrap w-100">
+        <i class="bi bi-search"></i>
+        <input type="text" name="city" placeholder="Search city…" autocomplete="off"
+          value="{{ weather.city if weather else '' }}">
+      </div>
+      <button type="submit" class="loc-btn"
+        style="background:linear-gradient(135deg,var(--g1),var(--g2));color:#032010;border-color:transparent;">
+        <i class="bi bi-search"></i> Search
+      </button>
+    </form>
+
+    <button class="loc-btn" id="geoBtn" onclick="getLocation()">
+      <i class="bi bi-geo-alt-fill"></i> Locate Me
+    </button>
+  </div>
+
+  <!-- ══ CONTENT ══ -->
+  <div class="content">
+
+    {% if weather %}
+
+    <!-- ═══════════════════════════════
+       ROW 1 — WEATHER NOW + HIGHLIGHTS
+  ═══════════════════════════════ -->
+    <div class="row g-3 mb-3">
+
+      <!-- WEATHER NOW -->
+      <div class="col-lg-5">
+        <div class="card-base h-100">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="city-badge">
+              <i class="bi bi-geo-alt-fill"></i>
+              {{ weather.city }}
+            </div>
+            <!-- ✅ FIX: °C first (active default), °F second -->
+            <div class="tog">
+              <button id="btnC" class="active" onclick="setUnit('C')">°C</button>
+              <button id="btnF" onclick="setUnit('F')">°F</button>
+            </div>
+          </div>
+
+          <!-- Main temp block -->
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="live-dot"></span>
+                <span
+                  style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--t3)">Live
+                  Now</span>
+              </div>
+              <div class="d-flex align-items-start" style="line-height:1">
+                <span class="temp-num" id="tNum" data-temp-c="{{ weather.temperature }}">
+                  {{ weather.temperature | int }}
+                </span> <span class="temp-sym" id="tSym">°C</span>
+              </div>
+              <div style="font-size:14px;font-weight:700;color:var(--t1);margin-top:6px;text-transform:capitalize">{{
+                weather.description }}</div>
+              <div class="d-flex align-items-center gap-1 mt-2">
+                <i class="bi bi-thermometer-half" style="color:var(--g1);font-size:13px"></i>
+                <strong id="tFeels" data-temp-c="{{ weather.feels_like }}">
+                  {{ weather.feels_like | int }}°C
+                </strong>
+              </div>
+              <div class="d-flex gap-3 mt-1 hilo">
+                <span><i class="bi bi-droplet" style="color:var(--sky)"></i><b>{{ weather.humidity
+                    }}%</b>&nbsp;Humidity</span>
+                <span><i class="bi bi-wind" style="color:var(--g1)"></i><b>{{ weather.wind_speed }}</b>&nbsp;m/s</span>
+              </div>
+              <div class="d-flex gap-3 mt-1 hilo">
+                <span><i class="bi bi-speedometer2" style="color:var(--t3)"></i><b>{{ weather.pressure
+                    }}</b>&nbsp;hPa</span>
+                <span><i class="bi bi-cloud" style="color:var(--t4)"></i><b>{{ weather.cloudiness
+                    }}%</b>&nbsp;Cloud</span>
+              </div>
+            </div>
+            <div class="wi" id="mainIcon">{{ weather.description | weather_icon }}</div>
+          </div>
+
+          <!-- Sun strip -->
+          <div class="sun-strip mt-2">
+            <div class="si">
+              <span style="font-size:22px"><span style="font-size:22px">
+                  <img class="img" src="/static/sunrise.png" alt="Sunrise" />
+                </span></span>
+              <span class="sl">Sunrise</span>
+              <span class="sv">{{ weather.sunrise }}</span>
+              <span class="sa">AM</span>
+            </div>
+            <div class="si">
+              <span style="font-size:22px"><span style="font-size:22px">
+                  <img class="img" src="/static/sunset.png" alt="Sunset" />
+                </span></span>
+              <span class="sl">Sunset</span>
+              <span class="sv">{{ weather.sunset }}</span>
+              <span class="sa">PM</span>
+            </div>
+            <div class="si">
+              <span style="font-size:22px">☁️</span>
+              <span class="sl">Condition</span>
+              <span class="sv" style="font-size:13px;text-transform:capitalize">{{ weather.description[:10] }}</span>
+              <span class="sa">Now</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HIGHLIGHTS -->
+      <div class="col-lg-7">
+        <div class="card-base h-100">
+          <div class="hl-title mb-3">Today's Highlights</div>
+          <div class="row g-2">
+
+            <!-- Wind -->
+            <div class="col-6">
+              <div class="hb" style="min-height:130px">
+                <div class="hb-lbl"><i class="bi bi-wind"></i>Wind Status</div>
+                <div class="wind-bars mt-1">
+                  <div class="wbar" style="height:18%;animation-delay:.00s"></div>
+                  <div class="wbar" style="height:30%;animation-delay:.03s"></div>
+                  <div class="wbar" style="height:48%;animation-delay:.06s"></div>
+                  <div class="wbar" style="height:36%;animation-delay:.09s"></div>
+                  <div class="wbar" style="height:58%;animation-delay:.12s"></div>
+                  <div class="wbar" style="height:42%;animation-delay:.15s"></div>
+                  <div class="wbar" style="height:26%;animation-delay:.18s"></div>
+                  <div class="wbar" style="height:52%;animation-delay:.21s"></div>
+                  <div class="wbar" style="height:62%;animation-delay:.24s"></div>
+                  <div class="wbar" style="height:40%;animation-delay:.27s"></div>
+                  <div class="wbar" style="height:34%;animation-delay:.30s"></div>
+                  <div class="wbar" style="height:50%;animation-delay:.33s"></div>
+                  <div class="wbar" style="height:44%;animation-delay:.36s"></div>
+                  <div class="wbar" style="height:60%;animation-delay:.39s"></div>
+                  <div class="wbar" style="height:32%;animation-delay:.42s"></div>
+                  <div class="wbar" style="height:54%;animation-delay:.45s"></div>
+                  <div class="wbar" style="height:28%;animation-delay:.48s"></div>
+                  <div class="wbar" style="height:38%;animation-delay:.51s"></div>
+                  <div class="wbar" style="height:56%;animation-delay:.54s"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-1"
+                  style="font-size:9.5px;color:var(--t4);font-weight:700">
+                  <span><i class="bi bi-speedometer2 me-1"></i>{{ weather.wind_speed }} m/s</span>
+                  <span>{{ weather.wind_direction }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Humidity -->
+            <div class="col-6">
+              <div class="hb" style="min-height:130px">
+                <div class="hb-lbl"><i class="bi bi-droplet-half"></i>Humidity</div>
+                <div class="d-flex align-items-center gap-2 mt-1">
+                  <span style="font-size:22px">
+                    <img class="img" src="/static/humidity.png" alt="Humidity" />
+                  </span>
+                  <div>
+                    <div class="hb-val">{{ weather.humidity }}%</div>
+                    <div class="hb-sub">
+                      {% if weather.humidity | int < 30 %}Dry {% elif weather.humidity | int < 60 %}Comfortable {% elif
+                        weather.humidity | int < 80 %}Humid {% else %}Very Humid{% endif %} </div>
+                    </div>
+                  </div>
+                  <div class="prog-bar">
+                    <div class="prog-fill" style="width:{{ weather.humidity }}%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pressure -->
+              <div class="col-6">
+                <div class="hb" style="min-height:114px">
+                  <div class="hb-lbl"><i class="bi bi-speedometer"></i>Pressure</div>
+                  <div class="d-flex align-items-center gap-2 mt-1">
+                    <span style="font-size:22px">
+                      <img class="img" src="/static/pressure.png" alt="Pressure" />
+                    </span>
+                    <div>
+                      <div class="hb-val">{{ weather.pressure }}</div>
+                      <div class="hb-sub">hPa ·
+                        {% if weather.pressure | int < 1000 %}Low pressure {% elif weather.pressure | int < 1020
+                          %}Normal {% else %}High pressure{% endif %} </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- AQI -->
+                <div class="col-6">
+                  <div class="hb" style="min-height:114px">
+                    <div class="hb-lbl"><i class="bi bi-lungs"></i>Air Quality</div>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                      <span style="font: size 50px;px">
+                        <img class="img" src="/static/air-quality.png" alt="Air Quality" />
+                      </span>
+                      <div>
+                        <div class="aqi-val">{{ weather.aqi if weather.aqi else 'N/A' }}</div>
+                        <span
+                          class="aqi-label {% if weather.aqi and weather.aqi | int <= 50 %}aqi-good{% elif weather.aqi and weather.aqi | int <= 100 %}aqi-moderate{% else %}aqi-poor{% endif %}">
+                          {% if weather.aqi %}
+                          {% if weather.aqi | int <= 50 %}Good {% elif weather.aqi | int <=100 %}Moderate {% elif
+                            weather.aqi | int <=150 %}Unhealthy {% else %}Hazardous{% endif %} {% else %}AQI{% endif %}
+                            </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Cloud Cover -->
+                <div class="col-6">
+                  <div class="hb" style="min-height:100px">
+                    <div class="hb-lbl"><span style="font: size 50px">
+                        <img class="img" src="/static/cloud-cover.png" alt="Cloud Cover" />
+                      </span>Cloud Cover</div>
+                    <div class="hb-val mt-1">{{ weather.cloudiness }}%</div>
+                    <div class="prog-bar">
+                      <div class="prog-fill"
+                        style="width:{{ weather.cloudiness }}%;background:linear-gradient(90deg,#64748b,#94a3b8)"></div>
+                    </div>
+                    <div class="hb-sub mt-1">
+                      {% if weather.cloudiness | int < 20 %}Clear sky {% elif weather.cloudiness | int < 50 %}Partly
+                        cloudy {% elif weather.cloudiness | int < 80 %}Mostly cloudy {% else %}Overcast{% endif %}
+                        </div>
+                    </div>
+                  </div>
+
+                  <!-- Visibility -->
+                  <div class="col-6">
+                    <div class="hb" style="min-height:100px">
+                      <div class="hb-lbl"><i class="bi bi-eye"></i>Visibility</div>
+                      <div class="d-flex align-items-center gap-2 mt-1">
+                        <span style="font: size 50px">
+                          <img class="img" src="/static/web-visibility.png" alt="Visibility" />
+                        </span>
+                        <div>
+                          <div class="hb-val">{{ weather.visibility if weather.visibility else '10' }} km</div>
+                          <div class="hb-sub">
+                            {% if weather.visibility and weather.visibility | int < 2 %}Poor {% elif weather.visibility
+                              and weather.visibility | int < 5 %}Moderate {% else %}Good{% endif %} </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══════════════════════
+       ROW 2 — FORECAST
+  ═══════════════════════ -->
+            <div class="card-base">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="fc-label"><i class="bi bi-calendar3"></i> Forecast</div>
+                <div class="tog">
+                  <button id="btnToday" class="active" onclick="toggleView('today')">Hourly</button>
+                  <button id="btnWeek" onclick="toggleView('week')">Weekly</button>
+                </div>
+              </div>
+
+              <!-- HOURLY VIEW -->
+              <div id="viewToday">
+                {% if hourly %}
+                <div class="hourly-scroll">
+                  {% for h in hourly %}
+                  <div class="hp {% if loop.first %}active{% endif %}" onclick="setActive(this)">
+                    <div class="ht">{{ h.datetime }}</div>
+                    <div class="hi">{{ h.description | weather_icon }}</div>
+                    <div class="hv" data-temp-c="{{ h.temperature }}">{{ h.temperature | int }}°</div>
+                    <div class="hd">{{ h.description | capitalize }}</div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                  <i class="bi bi-clock-history"></i>
+                  <h5>No hourly data</h5>
+                  <p>Search a city to see hourly forecast</p>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- ✅ WEEKLY VIEW — pill cards matching hourly style -->
+              <div id="viewWeek" style="display:none">
+                {% if weekly %}
+                <div class="weekly-scroll">
+                  {% for d in weekly %}
+                  <div class="wp {% if loop.index == 2 %}hi-card{% endif %}">
+                    <div class="wt">{{ d.date }}</div>
+                    <div class="wi2">{{ d.description | weather_icon }}</div>
+                    <div class="wv" data-temp-c="{{ d.temperature }}">{{ d.temperature | int }}°C</div>
+                    <div class="wd">{{ d.description | capitalize }}</div>
+                    <div class="wb">
+                      <div class="wbf" style="width:60%"></div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                  <i class="bi bi-calendar-x"></i>
+                  <h5>No weekly data</h5>
+                  <p>Search a city to see the 5-day forecast</p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+
+            {% else %}
+
+            <!-- EMPTY STATE – no city yet -->
+            <div class="card-base" style="margin-top:20px">
+              <div class="empty-state">
+                <i class="bi bi-cloud-sun" style="font-size:72px;color:var(--g1);opacity:.5"></i>
+                <h5 style="font-size:22px">Welcome to AgroAI Weather</h5>
+                <p style="font-size:14px;max-width:380px;margin:8px auto 0">
+                  Allow location access or search a city above to see real-time weather, hourly and weekly forecasts,
+                  AQI, and more.
+                </p>
+                <button class="loc-btn mt-4 mx-auto" style="display:inline-flex" onclick="getLocation()">
+                  <i class="bi bi-geo-alt-fill"></i> Auto-detect my location
+                </button>
+              </div>
+            </div>
+
+            {% endif %}
+
+          </div><!-- /content -->
+
+          <!-- ══ TOAST ══ -->
+          <div class="toast-wrap" id="toastWrap"></div>
+
+          <script>
+            /* ─── SAFE DATA FROM FLASK ─── */
+            const weatherData = {{ weather | tojson | default ('{}') }};
+
+            const weatherC = weatherData?.temperature || 0;
+            const feelsC = weatherData?.feels_like || 0;
+
+            const toF = c => Math.round(c * 9 / 5 + 32);
+            let isC = true;
+
+            /* UPDATE FUNCTION */
+            function updateTemps() {
+              const temp = isC ? Math.round(weatherC) : toF(weatherC);
+              const feels = isC ? Math.round(feelsC) : toF(feelsC);
+
+              const tNum = document.getElementById('tNum');
+              const tSym = document.getElementById('tSym');
+              const tFeels = document.getElementById('tFeels');
+
+              if (!tNum || !tSym || !tFeels) return; // ✅ prevents crash
+
+              tNum.textContent = temp;
+              tSym.textContent = isC ? '°C' : '°F';
+              tFeels.textContent = feels + (isC ? '°C' : '°F');
+
+              document.querySelectorAll('[data-temp-c]').forEach(el => {
+                const c = parseFloat(el.getAttribute('data-temp-c'));
+                if (isNaN(c)) return;
+
+                if (el.classList.contains('wv')) {
+                  el.textContent = isC ? Math.round(c) + '°C' : toF(c) + '°F';
+                } else {
+                  el.textContent = isC ? Math.round(c) + '°' : toF(c) + '°';
+                }
+              });
+            }
+
+            /* TOGGLE */
+            function setUnit(u) {
+              isC = (u === 'C');
+
+              document.getElementById('btnC')?.classList.toggle('active', isC);
+              document.getElementById('btnF')?.classList.toggle('active', !isC);
+
+              updateTemps();
+            }
+
+            /* LOAD FIX */
+            document.addEventListener("DOMContentLoaded", () => {
+              setUnit('C');
+            });
+            function toggleView(v) {
+              const today = v === 'today';
+              document.getElementById('viewToday').style.display = today ? 'block' : 'none';
+              document.getElementById('viewWeek').style.display = today ? 'none' : 'block';
+              document.getElementById('btnToday').classList.toggle('active', today);
+              document.getElementById('btnWeek').classList.toggle('active', !today);
+            }
+
+            function setActive(el) {
+              document.querySelectorAll('.hp').forEach(h => h.classList.remove('active'));
+              el.classList.add('active');
+            }
+
+            /* ─── LOADER ─── */
+            function showLoader(msg) {
+              document.getElementById('loaderText').textContent = msg || 'Loading…';
+              document.getElementById('loader').classList.remove('hidden');
+            }
+            function hideLoader() {
+              document.getElementById('loader').classList.add('hidden');
+            }
+
+            /* ─── TOAST ─── */
+            function toast(msg, icon = 'check-circle-fill') {
+              const w = document.getElementById('toastWrap');
+              const t = document.createElement('div');
+              t.className = 'toast-msg';
+              t.innerHTML = `<i class="bi bi-${icon}"></i> ${msg}`;
+              w.appendChild(t);
+              setTimeout(() => t.remove(), 3500);
+            }
+
+            /* ─── GEOLOCATION ─── */
+            function getLocation(auto = false) {
+              if (!navigator.geolocation) {
+                toast('Geolocation not supported', 'exclamation-triangle-fill');
+                return;
+              }
+
+              const btn = document.getElementById('geoBtn');
+
+              if (!auto) {
+                btn.classList.add('loading');
+                btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Detecting…';
+              }
+
+              showLoader('Detecting your location…');
+
+              navigator.geolocation.getCurrentPosition(
+                pos => sendPosition(pos, btn),
+                err => {
+                  hideLoader();
+                  if (!auto) {
+                    btn.classList.remove('loading');
+                    btn.innerHTML = '<i class="bi bi-geo-alt-fill"></i> Locate Me';
+                    toast('Location permission denied', 'exclamation-triangle-fill');
+                  }
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+              );
+            }
+
+            function sendPosition(pos, btn) {
+              const lat = pos.coords.latitude;
+              const lon = pos.coords.longitude;
+
+              showLoader('Fetching weather…');
+
+              // ✅ simple redirect (BEST METHOD)
+              window.location.href = `/weather?lat=${lat}&lon=${lon}`;
+            }
+
+            /* AUTO LOAD */
+            const hasWeather = {{ 'true' if weather else 'false' }};
+            if (!hasWeather) {
+              setTimeout(() => getLocation(true), 800);
+            } else {
+              hideLoader();
+            }
+          </script>
+
+          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

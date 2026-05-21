@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kishan Saathi</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --soil:   #0d1a0f;
+      --stem:   #22532a;
+      --sprout: #3aaa4a;
+      --glow:   #5ddd6b;
+      --amber:  #f0a500;
+      --sky:    #c8f5cd;
+      --border: rgba(90,210,100,0.18);
+      --glass:  rgba(15,35,17,0.72);
+    }
+
+    html, body {
+      min-height: 100vh;
+      font-family: 'Syne', sans-serif;
+      background: var(--soil);
+      color: var(--sky);
+      overflow-x: hidden;
+    }
+
+    /* BG */
+    .field-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 100%, #0f2e14 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 20% 80%, #152d18 0%, transparent 60%),
+        linear-gradient(170deg, #060d07 0%, #0d1a0f 40%, #111f13 100%);
+      overflow: hidden;
+    }
+    .field-bg::before {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
+      background: repeating-linear-gradient(88deg,transparent 0px,transparent 18px,rgba(42,110,52,0.12) 18px,rgba(42,110,52,0.12) 20px);
+      animation: sway 8s ease-in-out infinite alternate;
+    }
+    @keyframes sway { from{transform:skewX(-0.5deg)} to{transform:skewX(0.5deg)} }
+
+    .particle {
+      position: absolute; border-radius: 50%;
+      background: var(--glow);
+      animation: floatUp linear infinite; opacity: 0;
+    }
+    @keyframes floatUp {
+      0%  { transform:translateY(100vh) scale(0); opacity:0; }
+      10% { opacity:.25; } 90% { opacity:.1; }
+      100%{ transform:translateY(-10vh) scale(1.4); opacity:0; }
+    }
+
+    /* PAGE */
+    .page-wrap {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      padding: 28px 20px 44px;
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    @keyframes slideDown { from{opacity:0;transform:translateY(-18px)} to{opacity:1;transform:none} }
+
+    /* HEADER */
+    .page-header {
+      text-align:center; margin-bottom:22px;
+      animation: fadeUp 0.9s cubic-bezier(.22,1,.36,1) 0.1s both;
+    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(22px)} to{opacity:1;transform:none} }
+    .page-header h1 {
+      font-family:'DM Serif Display',serif;
+      font-size:clamp(2rem,4vw,2.8rem);
+      line-height:1.1; color:#fff; letter-spacing:-0.02em;
+    }
+    .page-header h1 em { font-style:italic; color:var(--glow); }
+    .page-header p {
+      margin-top:6px; font-size:11px;
+      color:rgba(200,245,205,0.45);
+      font-family:'Space Mono',monospace; letter-spacing:.07em;
+    }
+
+    /* FORM CARD */
+    .form-card {
+      width:100%; max-width:780px;
+      background:var(--glass);
+      border:0.5px solid var(--border); border-radius:24px;
+      padding:32px 36px 28px;
+      backdrop-filter:blur(18px);
+      animation: fadeUp 0.9s cubic-bezier(.22,1,.36,1) 0.2s both;
+    }
+
+    /* PROGRESS */
+    .progress-row {
+      display:flex; align-items:center; gap:12px; margin-bottom:26px;
+    }
+    .progress-bar-outer {
+      flex:1; height:3px;
+      background:rgba(90,210,100,0.1); border-radius:4px; overflow:hidden;
+    }
+    .progress-bar-inner {
+      height:100%; width:0%;
+      background:var(--glow); border-radius:4px;
+      transition:width 0.4s ease;
+    }
+    .progress-label {
+      font-family:'Space Mono',monospace; font-size:10px;
+      color:rgba(93,221,107,0.55); white-space:nowrap;
+    }
+
+    /* ===== ROW LAYOUTS ===== */
+    /* Row with 2 equal columns */
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    /* Row with 1 full-width column */
+    .row-1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    /* FIELD BLOCK */
+    .field-block { display:flex; flex-direction:column; gap:6px; }
+
+    .field-label {
+      font-size:10px; font-weight:700;
+      letter-spacing:.11em; text-transform:uppercase;
+      color:rgba(93,221,107,0.7);
+      font-family:'Space Mono',monospace;
+    }
+    .field-status {
+      display:inline-block; width:6px; height:6px;
+      border-radius:50%; background:rgba(90,210,100,0.18);
+      margin-left:5px; transition:background .3s; vertical-align:middle;
+    }
+    .field-status.filled { background:var(--glow); }
+
+    .field-input-wrap { position:relative; }
+
+    .field-input-wrap input[type="number"] {
+      width:100%;
+      padding:11px 40px 11px 14px;
+      background:rgba(10,25,12,0.75);
+      border:1px solid var(--border); border-radius:10px;
+      color:#fff;
+      font-family:'Space Mono',monospace; font-size:15px; font-weight:700;
+      outline:none;
+      transition:border-color .25s, box-shadow .25s, background .25s;
+      -moz-appearance:textfield;
+    }
+    .field-input-wrap input[type="number"]::-webkit-inner-spin-button,
+    .field-input-wrap input[type="number"]::-webkit-outer-spin-button { -webkit-appearance:none; }
+    .field-input-wrap input[type="number"]:focus {
+      border-color:var(--glow);
+      box-shadow:0 0 0 3px rgba(93,221,107,0.12);
+      background:rgba(18,44,20,0.92);
+    }
+    .field-input-wrap input[type="number"]:not(:placeholder-shown) {
+      border-color:rgba(93,221,107,0.38);
+    }
+    .unit-badge {
+      position:absolute; right:10px; top:50%;
+      transform:translateY(-50%);
+      font-family:'Space Mono',monospace; font-size:9px;
+      color:rgba(93,221,107,0.4); pointer-events:none; letter-spacing:.04em;
+    }
+
+    /* MINI BAR CHART */
+    .mini-chart {
+      height:26px;
+      background:rgba(10,25,12,0.6);
+      border-radius:6px; border:0.5px solid rgba(90,210,100,0.1);
+      overflow:hidden; position:relative;
+    }
+    .mini-chart-fill {
+      height:100%; width:0%;
+      background:linear-gradient(90deg,var(--stem) 0%,var(--glow) 100%);
+      border-radius:6px;
+      transition:width 0.5s cubic-bezier(.34,1.5,.64,1);
+      position:relative;
+    }
+    .mini-chart-fill::after {
+      content:''; position:absolute; right:0; top:0; bottom:0;
+      width:3px; background:#fff; border-radius:0 3px 3px 0; opacity:.55;
+    }
+    .mini-chart-ticks { position:absolute; inset:0; pointer-events:none; }
+    .tick { position:absolute; top:0; bottom:0; width:.5px; background:rgba(93,221,107,.18); }
+    .mini-chart-pct {
+      position:absolute; left:6px; top:50%; transform:translateY(-50%);
+      font-family:'Space Mono',monospace; font-size:9px; font-weight:700;
+      color:var(--glow); pointer-events:none; transition:color .3s;
+    }
+    .mini-chart-max {
+      position:absolute; right:6px; top:50%; transform:translateY(-50%);
+      font-family:'Space Mono',monospace; font-size:8px;
+      color:rgba(200,245,205,.35); pointer-events:none;
+    }
+
+    /* DIVIDER */
+    .form-divider { height:.5px; background:var(--border); margin:24px 0; }
+
+    /* BUTTONS */
+    .btn-row { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+    .btn {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:13px 30px; border:none; border-radius:50px;
+      font-family:'Syne',sans-serif; font-size:14px; font-weight:700;
+      letter-spacing:.04em; cursor:pointer; text-decoration:none;
+      transition:transform .2s, box-shadow .2s; position:relative; overflow:hidden;
+    }
+    .btn::before { content:''; position:absolute; inset:0; background:rgba(255,255,255,.07); opacity:0; transition:opacity .2s; }
+    .btn:hover::before { opacity:1; }
+    .btn:active { transform:scale(.97); }
+    .btn-primary {
+      background:linear-gradient(135deg,var(--stem) 0%,var(--sprout) 100%);
+      color:#fff; box-shadow:0 4px 22px rgba(58,170,74,.28);
+    }
+    .btn-primary:hover { box-shadow:0 6px 30px rgba(58,170,74,.44); transform:translateY(-1px); }
+    .btn-ghost {
+      background:rgba(20,50,22,.5);
+      border:.5px solid var(--border); color:var(--glow);
+    }
+    .btn-ghost:hover { background:rgba(30,70,32,.7); transform:translateY(-1px); }
+
+    @media (max-width:560px) {
+      .form-card { padding:22px 16px 20px; }
+      .row-2 { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="field-bg" id="fieldBg"></div>
+
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>Crop <em>Intelligence</em></h1>
+    <p>// soil analysis &amp; recommendation system</p>
+  </div>
+
+  <!-- FORM CARD -->
+  <div class="form-card">
+
+    <div class="progress-row">
+      <span class="progress-label" id="progLabel">0 / 7 fields</span>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progBar"></div>
+      </div>
+      <span class="progress-label" id="progPct">0%</span>
+    </div>
+
+    <form action="{{ url_for('crop.predict') }}" method="POST">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <!-- ROW 1 : Nitrogen | Phosphorus -->
+      <div class="row-2">
+
+        <div class="field-block">
+          <span class="field-label">Nitrogen <span class="field-status" id="dot-0"></span></span>
+          <div class="field-input-wrap">
+            <input type="number" name="Nitrogen" id="inp-0" placeholder="Enter value" min="0" max="140" required>
+            <span class="unit-badge">kg/ha</span>
+          </div>
+          <div class="mini-chart">
+            <div class="mini-chart-fill" id="bar-0"></div>
+            <div class="mini-chart-ticks"><div class="tick" style="left:33%"></div><div class="tick" style="left:66%"></div></div>
+            <span class="mini-chart-pct" id="pct-0">—</span>
+            <span class="mini-chart-max">140</span>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <span class="field-label">Phosphorus <span class="field-status" id="dot-1"></span></span>
+          <div class="field-input-wrap">
+            <input type="number" name="Phosphorus" id="inp-1" placeholder="Enter value" min="5" max="145" required>
+            <span class="unit-badge">kg/ha</span>
+          </div>
+          <div class="mini-chart">
+            <div class="mini-chart-fill" id="bar-1"></div>
+            <div class="mini-chart-ticks"><div class="tick" style="left:33%"></div><div class="tick" style="left:66%"></div></div>
+            <span class="mini-chart-pct" id="pct-1">—</span>
+            <span class="mini-chart-max">145</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ROW 2 : Potassium (full width) -->
+      <div class="row-1">
+
+        <div class="field-block">
+          <span class="field-label">Potassium <span class="field-status" id="dot-2"></span></span>
+          <div class="field-input-wrap">
+            <input type="number" name="Potassium" id="inp-2" placeholder="Enter value" min="5" max="205" required>
+            <span class="unit-badge">kg/ha</span>
+          </div>
+          <div class="mini-chart">
+            <div class="mini-chart-fill" id="bar-2"></div>
+            <div class="mini-chart-ticks">
+              <div class="tick" style="left:25%"></div>
+              <div class="tick" style="left:50%"></div>
+              <div class="tick" style="left:75%"></div>
+            </div>
+            <span class="mini-chart-pct" id="pct-2">—</span>
+            <span class="mini-chart-max">205</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ROW 3 : Humidity | Temperature -->
+      <div class="row-2">
+
+        <div class="field-block">
+          <span class="field-label">Humidity <span class="field-status" id="dot-3"></span></span>
+          <div class="field-input-wrap">
+            <input type="number" name="Humidity" id="inp-3" placeholder="Enter value" min="14" max="100" required>
+            <span class="unit-badge">%</span>
+          </div>
+          <div class="mini-chart">
+            <div class="mini-chart-fill" id="bar-3"></div>
+            <div class="mini-chart-ticks"><div class="tick" style="left:33%"></div><div class="tick" style="left:66%"></div></div>
+            <span class="mini-chart-pct" id="pct-3">—</span>
+            <span class="mini-chart-max">100%</span>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <span class="field-label">Temperature <span class="field-status" id="dot-4"></span></span>
+          <div class="field-input-wrap">
+            <input type="number" name="Temperature" id="inp-4" placeholder="Enter value" min="0" max="50" required>
+            <span class="unit-badge">°C</span>
+          </div>
+          <div class="mini-chart">
+            <div class="mini-chart-fill" id="bar-4"></div>
+            <div class="mini-chart-ticks"><div class="tick" style="left:33%"></div><div class="tick" style="left:66%"></div></div>
+            <span class="mini-chart-pct" id="pct-4">—</span>
+            <span class="mini-chart-max">50°C</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ROW 4 : pH | Rainfall -->
+      <div class="row-2">
+
+        <div class="field-block">
+          <span class="field-label">pH Level <span class="field-status" id="dot-5"></span></span>
+          <div class="field-input-wrap">
+            <input type="number" name="Ph" id="inp-5" placeholder="Enter value" min="3.5" max="9.9" step="0.1" required>
+            <span class="unit-badge">pH</span>
+          </div>
+          <div class="mini-chart">
+            <div class="mini-chart-fill" id="bar-5"></div>
+            <div class="mini-chart-ticks"><div class="tick" style="left:33%"></div><div class="tick" style="left:66%"></div></div>
+            <span class="mini-chart-pct" id="pct-5">—</span>
+            <span class="mini-chart-max">9.9</span>
+          </div>
+        </div>
+
+        <div class="field-block">
+          <span class="field-label">Rainfall <span class="field-status" id="dot-6"></span></span>
+          <div class="field-input-wrap">
+            <input type="number" name="Rainfall" id="inp-6" placeholder="Enter value" min="20" max="3000" required>
+            <span class="unit-badge">mm</span>
+          </div>
+          <div class="mini-chart">
+            <div class="mini-chart-fill" id="bar-6"></div>
+            <div class="mini-chart-ticks"><div class="tick" style="left:33%"></div><div class="tick" style="left:66%"></div></div>
+            <span class="mini-chart-pct" id="pct-6">—</span>
+            <span class="mini-chart-max">3000mm</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="form-divider"></div>
+
+      <div class="btn-row">
+        <a href="{{ url_for('home') }}" style="text-decoration:none;">
+          <button type="button" class="btn btn-ghost">🏠 Home</button>
+        </a>
+        <button type="submit" class="btn btn-primary">🌱 Analyse &amp; Recommend</button>
+      </div>
+
+    </form>
+  </div>
+
+</div>
+
+<script>
+  /* PARTICLES */
+  (function(){
+    const bg = document.getElementById('fieldBg');
+    for(let i=0;i<16;i++){
+      const p=document.createElement('div'); p.className='particle';
+      const s=Math.random()*3+1;
+      p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${9+Math.random()*14}s;animation-delay:${Math.random()*14}s;`;
+      bg.appendChild(p);
+    }
+  })();
+
+  /* FIELD CONFIG [min, max] */
+  const CFG = [
+    [0,140],   // Nitrogen
+    [5,145],   // Phosphorus
+    [5,205],   // Potassium
+    [14,100],  // Humidity
+    [0,50],    // Temperature
+    [3.5,9.9], // pH
+    [20,3000],  // Rainfall
+  ];
+
+  function updateBar(i){
+    const inp=document.getElementById('inp-'+i);
+    const bar=document.getElementById('bar-'+i);
+    const pct=document.getElementById('pct-'+i);
+    const dot=document.getElementById('dot-'+i);
+    if(!inp) return;
+    inp.addEventListener('input',function(){
+      const val=parseFloat(this.value);
+      if(isNaN(val)||this.value===''){
+        bar.style.width='0%'; pct.textContent='—'; dot.classList.remove('filled');
+      } else {
+        const [mn,mx]=CFG[i];
+        const f=Math.max(0,Math.min(1,(val-mn)/(mx-mn)));
+        const p=Math.round(f*100);
+        bar.style.width=p+'%'; pct.textContent=p+'%'; dot.classList.add('filled');
+        if(f<0.35)      bar.style.background='linear-gradient(90deg,#0f3a22,#1db954)';
+        else if(f<0.72) bar.style.background='linear-gradient(90deg,#22532a,#5ddd6b)';
+        else            bar.style.background='linear-gradient(90deg,#4a3a00,#f0a500)';
+      }
+      updateProgress();
+    });
+  }
+  for(let i=0;i<7;i++) updateBar(i);
+
+  function updateProgress(){
+    let filled=0;
+    for(let i=0;i<7;i++) if(document.getElementById('inp-'+i).value!=='') filled++;
+    const p=Math.round(filled/7*100);
+    document.getElementById('progBar').style.width=p+'%';
+    document.getElementById('progLabel').textContent=filled+' / 7 fields';
+    document.getElementById('progPct').textContent=p+'%';
+  }
+
+  /* GEOLOCATION — silent background fetch, no UI element */
+  window._geoData = { lat: null, lon: null, place: null };
+  if ('geolocation' in navigator) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      window._geoData.lat = pos.coords.latitude.toFixed(4);
+      window._geoData.lon = pos.coords.longitude.toFixed(4);
+      fetch('https://nominatim.openstreetmap.org/reverse?lat=' + window._geoData.lat + '&lon=' + window._geoData.lon + '&format=json')
+        .then(r => r.json())
+        .then(d => {
+          const a = d.address || {};
+          const parts = [a.village||a.town||a.city||a.county, a.state, a.country].filter(Boolean);
+          window._geoData.place = parts.join(', ') || 'Unknown';
+        })
+        .catch(() => {});
+    }, function() {}, { enableHighAccuracy: true, timeout: 10000 });
+  }
+</script>
+</body>
+</html>

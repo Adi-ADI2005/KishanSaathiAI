@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kishan Saathi AI</title>
+   <link rel="icon" type="image/png" href="/static/logo.png">
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* =============================================
+       CSS VARIABLES & RESET
+    ============================================= */
+    :root {
+      --dark-green: #0f3d2e;
+      --mid-green: #154d3a;
+      --emerald: #1f7a63;
+      --light-emerald: #27a882;
+      --accent: #f4c430;
+      --accent-light: #fdd96a;
+      --glass-bg: rgba(255, 255, 255, 0.07);
+      --glass-border: rgba(255, 255, 255, 0.15);
+      --text-light: rgba(255, 255, 255, 0.88);
+      --text-muted: rgba(255, 255, 255, 0.55);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: var(--dark-green);
+    }
+
+    /* =============================================
+       SPLIT LAYOUT
+    ============================================= */
+    .split-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ---- LEFT PANEL (60%) ---- */
+    .left-panel {
+      position: relative;
+      width: 60%;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 2.5rem 1.5rem;
+      background: linear-gradient(160deg, #071e14 0%, #0f3d2e 40%, #1a5c44 70%, #0d3528 100%);
+    }
+
+    /* ---- RIGHT PANEL (40%) ---- */
+    .right-panel {
+      width: 40%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      background: linear-gradient(180deg, #071e14 0%, #0b2d21 100%);
+      position: relative;
+      overflow-y: auto;
+    }
+
+    /* =============================================
+       ANIMATED BACKGROUND — PARTICLES
+    ============================================= */
+    #particle-canvas {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* =============================================
+       SUNRISE EFFECT
+    ============================================= */
+    .sunrise {
+      position: absolute;
+      bottom: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 340px;
+      height: 170px;
+      background: radial-gradient(ellipse at center bottom,
+          rgba(244, 196, 48, 0.35) 0%,
+          rgba(244, 140, 30, 0.18) 40%,
+          transparent 70%);
+      animation: sunPulse 4s ease-in-out infinite alternate;
+      z-index: 1;
+      border-radius: 50% 50% 0 0;
+    }
+
+    @keyframes sunPulse {
+      from {
+        opacity: 0.6;
+        transform: translateX(-50%) scaleX(1);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(-50%) scaleX(1.08);
+      }
+    }
+
+    /* =============================================
+       CROP FIELD SILHOUETTE (SVG BG)
+    ============================================= */
+    .crop-field {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      z-index: 2;
+    }
+
+    /* =============================================
+       ANIMATED SEEDLINGS (SVG)
+    ============================================= */
+    .seedling-group {
+      position: absolute;
+      bottom: 90px;
+      left: 0;
+      width: 100%;
+      z-index: 3;
+      display: flex;
+      justify-content: space-around;
+      padding: 0 1rem;
+    }
+
+    .seedling {
+      animation: grow 3s ease-in-out infinite alternate;
+      transform-origin: bottom center;
+    }
+
+    .seedling:nth-child(2) {
+      animation-delay: 0.4s;
+    }
+
+    .seedling:nth-child(3) {
+      animation-delay: 0.8s;
+    }
+
+    .seedling:nth-child(4) {
+      animation-delay: 1.2s;
+    }
+
+    .seedling:nth-child(5) {
+      animation-delay: 1.6s;
+    }
+
+    @keyframes grow {
+      from {
+        transform: scaleY(0.88) rotate(-2deg);
+      }
+
+      to {
+        transform: scaleY(1.05) rotate(2deg);
+      }
+    }
+
+    /* =============================================
+       LEFT PANEL — CONTENT LAYERS
+    ============================================= */
+    .left-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* Logo + App name */
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      object-fit: cover;
+      border: 2px solid rgba(244, 196, 48, 0.5);
+      background: var(--glass-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: #fff;
+      line-height: 1.1;
+    }
+
+    .brand-tagline {
+      font-family: 'Lora', serif;
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+
+    /* Hero heading */
+    .hero-heading {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.6rem, 2.8vw, 2.6rem);
+      color: #fff;
+      line-height: 1.2;
+      margin-top: auto;
+      padding-bottom: 0.4rem;
+    }
+
+    .hero-heading .highlight {
+      color: var(--accent);
+    }
+
+    /* =============================================
+       FEATURE CARDS
+    ============================================= */
+    .feature-cards {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: nowrap;
+      margin-top: 1rem;
+      padding-bottom: 0.5rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .feature-cards::-webkit-scrollbar {
+      display: none;
+    }
+
+    .feat-card {
+      flex: 0 0 auto;
+      width: 100px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 14px;
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      cursor: default;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    }
+
+    .feat-card:hover {
+      transform: translateY(-4px) scale(1.04);
+      background: rgba(255, 255, 255, 0.13);
+      box-shadow: 0 0 18px rgba(244, 196, 48, 0.22), 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+
+    .feat-card .feat-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+
+    .feat-card .feat-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+      letter-spacing: 0.02em;
+      line-height: 1.3;
+    }
+
+    /* =============================================
+       RIGHT PANEL — SIGNUP FORM
+    ============================================= */
+    .form-card {
+      width: 100%;
+      max-width: 440px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 2rem 2rem 1.75rem;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .form-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.55rem;
+      color: #fff;
+      margin-bottom: 0.2rem;
+    }
+
+    .form-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 1.4rem;
+    }
+
+    /* Form controls */
+    .form-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 0.3rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .form-control,
+    .input-group .form-control {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      color: #fff !important;
+      border-radius: 10px !important;
+      font-family: 'Lora', serif;
+      font-size: 0.88rem;
+      padding: 0.55rem 0.85rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .form-control:focus {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 3px rgba(244, 196, 48, 0.18) !important;
+      outline: none;
+    }
+
+    .form-control.is-invalid {
+      border-color: #e74c3c !important;
+    }
+
+    /* Input group for password */
+    .input-group {
+      flex-wrap: nowrap;
+    }
+
+    .input-group .btn-eye {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-left: none;
+      border-radius: 0 10px 10px 0 !important;
+      color: rgba(255, 255, 255, 0.55);
+      padding: 0 0.75rem;
+      transition: color 0.2s;
+    }
+
+    .input-group .btn-eye:hover {
+      color: var(--accent);
+      background: rgba(255, 255, 255, 0.10);
+    }
+
+    .input-group .form-control {
+      border-radius: 10px 0 0 10px !important;
+      border-right: none !important;
+    }
+
+    /* CAPTCHA */
+    .captcha-display {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px dashed rgba(255, 255, 255, 0.25);
+      border-radius: 10px;
+      padding: 0.45rem 0.85rem;
+      font-family: 'Courier New', monospace;
+      font-size: 1.1rem;
+      letter-spacing: 0.35em;
+      color: var(--accent);
+      user-select: none;
+      text-decoration: line-through;
+      text-decoration-color: rgba(255, 255, 255, 0.2);
+      min-width: 110px;
+      text-align: center;
+    }
+
+    .btn-refresh {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 10px !important;
+      color: rgba(255, 255, 255, 0.6);
+      padding: 0.45rem 0.65rem;
+      transition: color 0.2s, transform 0.3s;
+    }
+
+    .btn-refresh:hover {
+      color: var(--accent);
+      transform: rotate(180deg);
+    }
+
+    /* Buttons */
+    .btn-signup {
+      background: linear-gradient(135deg, #1f7a63 0%, #27a882 60%, #f4c430 130%);
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 0.65rem 1rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: box-shadow 0.25s, transform 0.2s;
+      width: 100%;
+    }
+
+    .btn-signup:hover {
+      box-shadow: 0 0 22px rgba(31, 122, 99, 0.6), 0 4px 16px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    .btn-google {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.6rem 1rem;
+      width: 100%;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+    }
+
+    .btn-google:hover {
+      background: rgba(255, 255, 255, 0.13);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    .google-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    .divider-text {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-align: center;
+      position: relative;
+      margin: 0.8rem 0;
+    }
+
+    .divider-text::before,
+    .divider-text::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 38%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .divider-text::before {
+      left: 0;
+    }
+
+    .divider-text::after {
+      right: 0;
+    }
+
+    .signin-link {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.8rem;
+    }
+
+    .signin-link a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .signin-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Flash messages */
+    .flash-container {
+      margin-bottom: 0.8rem;
+    }
+
+    .flash-container .alert {
+      font-size: 0.8rem;
+      border-radius: 10px;
+      padding: 0.5rem 0.85rem;
+    }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 900px) {
+      .split-layout {
+        flex-direction: column;
+      }
+
+      .left-panel {
+        width: 100%;
+        min-height: 45vh;
+        padding: 1.5rem 1.25rem 1rem;
+      }
+
+      .right-panel {
+        width: 100%;
+        min-height: auto;
+        padding: 1.5rem 1rem 2rem;
+      }
+
+      .hero-heading {
+        font-size: 1.4rem;
+        margin-top: 1rem;
+      }
+
+      .seedling-group {
+        bottom: 70px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .form-card {
+        padding: 1.5rem 1.1rem 1.25rem;
+      }
+
+      .feat-card {
+        width: 88px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =============================================
+     MAIN SPLIT LAYOUT
+============================================= -->
+  <div class="split-layout">
+
+    <!-- ==========================================
+       LEFT PANEL
+  ========================================== -->
+    <section class="left-panel" aria-label="Feature showcase">
+
+      <!-- Particle canvas -->
+      <canvas id="particle-canvas"></canvas>
+
+      <!-- Sunrise glow -->
+      <div class="sunrise" aria-hidden="true"></div>
+
+      <!-- Crop field SVG silhouette -->
+      <svg class="crop-field" viewBox="0 0 1200 160" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"
+        aria-hidden="true">
+        <path
+          d="M0,160 L0,110 Q50,80 100,110 Q150,80 200,110 Q250,80 300,105 Q350,75 400,108 Q450,78 500,105 Q550,78 600,108 Q650,80 700,105 Q750,78 800,108 Q850,80 900,108 Q950,78 1000,110 Q1050,82 1100,110 Q1150,82 1200,108 L1200,160 Z"
+          fill="rgba(10,40,25,0.9)" />
+        <path
+          d="M0,160 L0,125 Q60,100 120,125 Q180,100 240,122 Q300,100 360,124 Q420,102 480,124 Q540,100 600,124 Q660,102 720,124 Q780,100 840,124 Q900,102 960,124 Q1020,100 1080,124 Q1140,102 1200,120 L1200,160 Z"
+          fill="rgba(8,30,18,0.97)" />
+      </svg>
+
+      <!-- Animated seedlings SVG -->
+      <div class="seedling-group" aria-hidden="true">
+        <!-- Seedling 1 -->
+        <svg class="seedling" width="32" height="60" viewBox="0 0 32 60">
+          <line x1="16" y1="60" x2="16" y2="20" stroke="#27a882" stroke-width="2.5" />
+          <path d="M16,36 Q6,22 10,10 Q20,18 16,36" fill="#1f7a63" opacity="0.9" />
+          <path d="M16,30 Q26,18 22,8 Q14,15 16,30" fill="#27a882" opacity="0.85" />
+        </svg>
+        <!-- Seedling 2 -->
+        <svg class="seedling" width="28" height="52" viewBox="0 0 28 52">
+          <line x1="14" y1="52" x2="14" y2="18" stroke="#1f7a63" stroke-width="2" />
+          <path d="M14,32 Q4,20 8,8 Q18,14 14,32" fill="#155c46" opacity="0.9" />
+          <path d="M14,26 Q24,16 20,6 Q12,12 14,26" fill="#1f7a63" opacity="0.85" />
+        </svg>
+        <!-- Seedling 3 (tall) -->
+        <svg class="seedling" width="36" height="70" viewBox="0 0 36 70">
+          <line x1="18" y1="70" x2="18" y2="22" stroke="#27a882" stroke-width="3" />
+          <path d="M18,44 Q4,28 10,12 Q24,20 18,44" fill="#1a6b52" opacity="0.92" />
+          <path d="M18,36 Q32,22 26,8 Q14,16 18,36" fill="#27a882" opacity="0.88" />
+          <path d="M18,28 Q6,18 10,8 Q20,14 18,28" fill="#1f7a63" opacity="0.8" />
+        </svg>
+        <!-- Seedling 4 -->
+        <svg class="seedling" width="28" height="50" viewBox="0 0 28 50">
+          <line x1="14" y1="50" x2="14" y2="16" stroke="#1f7a63" stroke-width="2" />
+          <path d="M14,30 Q4,18 8,6 Q18,12 14,30" fill="#155c46" opacity="0.88" />
+          <path d="M14,24 Q24,14 20,4 Q12,10 14,24" fill="#1f7a63" opacity="0.82" />
+        </svg>
+        <!-- Seedling 5 -->
+        <svg class="seedling" width="30" height="56" viewBox="0 0 30 56">
+          <line x1="15" y1="56" x2="15" y2="20" stroke="#27a882" stroke-width="2.5" />
+          <path d="M15,36 Q5,22 9,10 Q20,16 15,36" fill="#1f7a63" opacity="0.9" />
+          <path d="M15,30 Q26,18 22,7 Q13,14 15,30" fill="#27a882" opacity="0.85" />
+        </svg>
+      </div>
+
+      <!-- Left panel content -->
+      <div class="left-content">
+        <!-- Brand -->
+        <div class="brand-row">
+          <div class="brand-logo">🌾</div>
+          <div>
+            <div class="brand-name">Kishan Saathi AI</div>
+            <div class="brand-tagline">Har Kisan Ka Smart Saathi</div>
+          </div>
+        </div>
+
+        <!-- Spacer push hero down -->
+        <div style="flex:1;"></div>
+
+        <!-- Hero heading -->
+        <h1 class="hero-heading">
+          Start Your<br>
+          <span class="highlight">Smart Farming</span><br>
+          Journey
+        </h1>
+
+        <!-- Feature cards -->
+        <div class="feature-cards" role="list" aria-label="App features">
+
+          <div class="feat-card" role="listitem">
+            <span class="feat-icon">🌾</span>
+            <span class="feat-label">Crop<br>Prediction</span>
+          </div>
+
+          <div class="feat-card" role="listitem">
+            <span class="feat-icon">🌤️</span>
+            <span class="feat-label">Weather<br>Forecast</span>
+          </div>
+
+          <div class="feat-card" role="listitem">
+            <span class="feat-icon">🤖</span>
+            <span class="feat-label">Chat<br>Bot</span>
+          </div>
+
+          <div class="feat-card" role="listitem">
+            <span class="feat-icon">🔬</span>
+            <span class="feat-label">Disease<br>Detection</span>
+          </div>
+
+          <div class="feat-card" role="listitem">
+            <span class="feat-icon">📜</span>
+            <span class="feat-label">Govt<br>Schemes</span>
+          </div>
+
+        </div><!-- /feature-cards -->
+      </div><!-- /left-content -->
+    </section>
+    <!-- ==========================================
+       END LEFT PANEL
+  ========================================== -->
+
+
+    <!-- ==========================================
+       RIGHT PANEL — SIGNUP FORM
+  ========================================== -->
+    <section class="right-panel" aria-label="Sign up form">
+      <div class="form-card">
+
+        <h2 class="form-title">Create Account</h2>
+        <p class="form-subtitle">Join thousands of smart farmers today</p>
+
+        <!-- ---- Flask flash messages (Jinja2) ---- -->
+        <div class="flash-container">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+          {% for category, message in messages %}
+          <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show"
+            role="alert">
+            {{ message }}
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+          {% endfor %}
+          {% endif %}
+          {% endwith %}
+        </div>
+
+        <!-- ---- Signup Form ---- -->
+        <form method="POST" action="/signup" novalidate id="signupForm">
+
+          <!-- CSRF token if using Flask-WTF -->
+         {# {{ form.hidden_tag() }} #}
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Row 1: First Name + Last Name -->
+          <div class="row g-2 mb-2">
+            <div class="col-12 col-sm-6">
+              <label class="form-label" for="firstName">First Name</label>
+              <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Ramesh"
+                autocomplete="given-name" required />
+            </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label" for="lastName">Last Name</label>
+              <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Kumar"
+                autocomplete="family-name" required />
+            </div>
+          </div>
+
+          <!-- Row 2: email -->
+          <div class="mb-2">
+            <label class="form-label" for="email">Email</label>
+            <i class="bi bi-envelope input-icon"></i>
+            <input type="email" class="form-control" id="email" name="email" placeholder="youremail@gmail.com"
+              autocomplete="email" required />
+          </div>
+
+          <!-- Row 3: Password -->
+          <div class="mb-2">
+            <label class="form-label" for="password">Password</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="password" name="password" placeholder="Min 8 characters"
+                autocomplete="new-password" required />
+              <button class="btn btn-eye" type="button" id="togglePassword" aria-label="Toggle password visibility">
+                <i class="bi bi-eye" id="eyeIcon1"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Row 4: Confirm Password -->
+          <div class="mb-2">
+            <label class="form-label" for="confirmPassword">Confirm Password</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="confirmPassword" name="confirm_password"
+                placeholder="Re-enter password" autocomplete="new-password" required />
+              <button class="btn btn-eye" type="button" id="toggleConfirm"
+                aria-label="Toggle confirm password visibility">
+                <i class="bi bi-eye" id="eyeIcon2"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Row 5: CAPTCHA -->
+          <div class="mb-3">
+            <label class="form-label" for="captchaInput">Captcha Verification</label>
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div class="captcha-display" id="captchaDisplay" aria-label="CAPTCHA code">7K2mP9</div>
+              <button type="button" class="btn btn-refresh" id="refreshCaptcha" aria-label="Refresh CAPTCHA">
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+            </div>
+            <input type="text" class="form-control" id="captchaInput" name="captcha" placeholder="Enter the code above"
+              autocomplete="off" required maxlength="6" />
+          </div>
+
+          <!-- Sign Up Button -->
+          <button type="submit" class="btn btn-signup mb-2">
+            <i class="bi bi-person-plus-fill me-2"></i>Create My Account
+          </button>
+
+          <!-- Divider -->
+          <div class="divider-text">or</div>
+
+          <!-- Google Sign-up -->
+          <a href="/auth/google" class="btn btn-google mb-2" role="button">
+            <!-- Google SVG icon -->
+            <svg class="google-icon" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill="#EA4335"
+                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+              <path fill="#4285F4"
+                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+              <path fill="#FBBC05"
+                d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+              <path fill="#34A853"
+                d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+            </svg>
+            Sign up with Google
+          </a>
+
+          <!-- Sign In link -->
+          <p class="signin-link">
+            Already have an account? <a href="/">Sign In</a>
+          </p>
+
+        </form>
+        <!-- /form -->
+
+      </div><!-- /form-card -->
+    </section>
+    <!-- ==========================================
+       END RIGHT PANEL
+  ========================================== -->
+
+  </div><!-- /split-layout -->
+
+  <!-- =============================================
+     Bootstrap 5 JS
+============================================= -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    /* =============================================
+       PARTICLES ANIMATION
+    ============================================= */
+    (function () {
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H, particles = [];
+
+      function resize() {
+        W = canvas.width = canvas.offsetWidth;
+        H = canvas.height = canvas.offsetHeight;
+      }
+
+      class Particle {
+        constructor() { this.reset(true); }
+        reset(init) {
+          this.x = Math.random() * W;
+          this.y = init ? Math.random() * H : H + 5;
+          this.r = Math.random() * 1.8 + 0.4;
+          this.vx = (Math.random() - 0.5) * 0.4;
+          this.vy = -(Math.random() * 0.5 + 0.2);
+          this.life = Math.random() * 0.6 + 0.3;
+        }
+        update() {
+          this.x += this.vx; this.y += this.vy;
+          this.life -= 0.002;
+          if (this.y < -10 || this.life <= 0) this.reset(false);
+        }
+        draw() {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(244,196,48,${this.life * 0.7})`;
+          ctx.shadowBlur = 6;
+          ctx.shadowColor = 'rgba(244,196,48,0.5)';
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+
+      function init() {
+        resize();
+        particles = Array.from({ length: 120 }, () => new Particle());
+      }
+
+      function loop() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(loop);
+      }
+
+      window.addEventListener('resize', resize);
+      init();
+      loop();
+    })();
+
+
+    /* =============================================
+       PASSWORD TOGGLE — Password field
+    ============================================= */
+    document.getElementById('togglePassword').addEventListener('click', function () {
+      const input = document.getElementById('password');
+      const icon = document.getElementById('eyeIcon1');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+      }
+    });
+
+    /* PASSWORD TOGGLE — Confirm Password */
+    document.getElementById('toggleConfirm').addEventListener('click', function () {
+      const input = document.getElementById('confirmPassword');
+      const icon = document.getElementById('eyeIcon2');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+      }
+    });
+
+
+    /* =============================================
+       CAPTCHA — Dummy refresh
+    ============================================= */
+    const CAPTCHA_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let currentCaptcha = '7K2mP9';
+
+    function generateCaptcha(len = 6) {
+      let code = '';
+      for (let i = 0; i < len; i++) {
+        code += CAPTCHA_CHARS[Math.floor(Math.random() * CAPTCHA_CHARS.length)];
+      }
+      return code;
+    }
+
+    document.getElementById('refreshCaptcha').addEventListener('click', function () {
+      currentCaptcha = generateCaptcha();
+      document.getElementById('captchaDisplay').textContent = currentCaptcha;
+      document.getElementById('captchaInput').value = '';
+      // Spin animation
+      this.querySelector('i').style.transition = 'transform 0.4s ease';
+      this.querySelector('i').style.transform = 'rotate(360deg)';
+      setTimeout(() => {
+        this.querySelector('i').style.transform = 'rotate(0deg)';
+      }, 420);
+    });
+
+    /* Store captcha for client-side validation hint (server should validate) */
+    document.getElementById('signupForm').addEventListener('submit', function (e) {
+      const input = document.getElementById('captchaInput').value.trim();
+      if (input !== currentCaptcha) {
+        e.preventDefault();
+        document.getElementById('captchaInput').classList.add('is-invalid');
+        document.getElementById('captchaInput').setCustomValidity('CAPTCHA does not match.');
+        // Regenerate
+        currentCaptcha = generateCaptcha();
+        document.getElementById('captchaDisplay').textContent = currentCaptcha;
+      } else {
+        document.getElementById('captchaInput').classList.remove('is-invalid');
+        document.getElementById('captchaInput').setCustomValidity('');
+      }
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kishan Saathi — Results</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --soil:   #0a150c;
+      --stem:   #1e4d26;
+      --sprout: #3aaa4a;
+      --glow:   #5ddd6b;
+      --amber:  #f0a500;
+      --sky:    #c8f5cd;
+      --border: rgba(90,210,100,0.2);
+      --glass:  rgba(10,25,12,0.78);
+    }
+
+    html, body {
+      min-height: 100vh;
+      font-family: 'Syne', sans-serif;
+      background: var(--soil);
+      overflow-x: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ===== ANIMATED FIELD BACKGROUND ===== */
+    .field-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 55% at 50% 100%, #0f2e14 0%, transparent 65%),
+        radial-gradient(ellipse 55% 40% at 10% 80%, #152d18 0%, transparent 55%),
+        linear-gradient(175deg, #050d06 0%, #0a150c 45%, #0e1f10 100%);
+      overflow: hidden;
+    }
+
+    /* Soil ground strip */
+    .field-bg::before {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 30%;
+      background: repeating-linear-gradient(
+        87deg,
+        transparent 0px, transparent 22px,
+        rgba(42,110,52,0.1) 22px, rgba(42,110,52,0.1) 24px
+      );
+      animation: sway 9s ease-in-out infinite alternate;
+    }
+
+    /* Sun glow top-right */
+    .field-bg::after {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 220px; height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(240,165,0,0.18) 0%, transparent 70%);
+      animation: sunPulse 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes sway     { from{transform:skewX(-0.6deg)} to{transform:skewX(0.6deg)} }
+    @keyframes sunPulse { from{opacity:.6;transform:scale(1)} to{opacity:1;transform:scale(1.12)} }
+
+    /* Floating pollen particles */
+    .particle {
+      position: absolute; border-radius: 50%;
+      background: var(--glow);
+      animation: floatUp linear infinite; opacity: 0;
+    }
+    @keyframes floatUp {
+      0%  { transform:translateY(100vh) scale(0); opacity:0; }
+      8%  { opacity:.22; }
+      92% { opacity:.08; }
+      100%{ transform:translateY(-8vh) scale(1.6); opacity:0; }
+    }
+
+    /* Animated crop stalks bottom */
+    .stalks { position:fixed; bottom:0; left:0; right:0; z-index:1; height:90px; pointer-events:none; }
+    .stalk {
+      position:absolute; bottom:0;
+      width:3px; background:linear-gradient(to top, #1e4d26, #3aaa4a);
+      border-radius:3px 3px 0 0;
+      transform-origin: bottom center;
+      animation: stalkSway 3s ease-in-out infinite alternate;
+    }
+    .stalk::after {
+      content:'🌿';
+      position:absolute; top:-10px; left:-8px;
+      font-size:16px;
+      animation: leafSway 3s ease-in-out infinite alternate;
+    }
+    @keyframes stalkSway  { from{transform:rotate(-4deg)} to{transform:rotate(4deg)} }
+    @keyframes leafSway   { from{transform:rotate(-6deg)} to{transform:rotate(6deg)} }
+
+    /* ===== PAGE WRAP ===== */
+    .page-wrap {
+      position:relative; z-index:2;
+      width:100%; min-height:100vh;
+      display:flex; align-items:center; justify-content:center;
+      padding:30px 16px;
+    }
+
+    /* ===== THE CARD ===== */
+    .card {
+      width: 700px;
+      max-width: 100%;
+      position: relative;
+      border-radius: 32px;
+      padding: 2px;
+      background: linear-gradient(135deg,
+        rgba(93,221,107,0.7) 0%,
+        rgba(58,170,74,0.2) 30%,
+        rgba(240,165,0,0.4) 60%,
+        rgba(93,221,107,0.7) 100%);
+      background-size: 300% 300%;
+      animation: borderRotate 4s linear infinite;
+      box-shadow:
+        0 0 40px rgba(93,221,107,0.25),
+        0 0 80px rgba(93,221,107,0.1),
+        inset 0 0 40px rgba(0,0,0,0.4);
+    }
+
+    @keyframes borderRotate {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .card:hover {
+      box-shadow:
+        0 0 60px rgba(93,221,107,0.4),
+        0 0 120px rgba(93,221,107,0.18),
+        inset 0 0 40px rgba(0,0,0,0.4);
+    }
+
+    .card-int {
+      width: 100%; min-height: 520px;
+      background: rgba(6, 18, 8, 0.82);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border-radius: 30px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      position: relative;
+      transition: background 0.5s;
+    }
+
+    .card:hover .card-int {
+      background: rgba(8, 24, 10, 0.88);
+    }
+
+    /* Grid lines shimmer */
+    .card-int::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        linear-gradient(rgba(93,221,107,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(93,221,107,0.03) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none;
+      border-radius: 30px;
+    }
+
+    /* Corner accent glows */
+    .card-int::after {
+      content: '';
+      position: absolute;
+      top: -60px; left: -60px;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(93,221,107,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      animation: cornerPulse 3s ease-in-out infinite alternate;
+    }
+    @keyframes cornerPulse {
+      from { opacity: 0.5; transform: scale(0.9); }
+      to   { opacity: 1;   transform: scale(1.1); }
+    }
+
+    /* ===== LOADER ===== */
+    .loader-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .loader {
+      width: 100px; height: 100px;
+      box-sizing: border-box;
+      border-radius: 50%;
+      border-top: 5px solid #5ddd6b;
+      position: relative;
+      animation: load 2s linear infinite;
+    }
+    .loader::before, .loader::after {
+      content: '';
+      width: 100px; height: 100px;
+      position: absolute; left:0; top:0;
+      box-sizing: border-box;
+      border-radius: 50%;
+    }
+    .loader::before { border-top: 5px solid #f0a500; transform: rotate(120deg); }
+    .loader::after  { border-top: 5px solid #3aaa4a; transform: rotate(240deg); }
+    .loader span {
+      position:absolute;
+      font-size:11px; font-family:'Space Mono',monospace;
+      width:100px; height:100px;
+      color:#5ddd6b;
+      text-align:center; line-height:100px;
+      animation: a2 2s linear infinite;
+    }
+    @keyframes load { to{transform:rotate(360deg)} }
+    @keyframes a2   { to{transform:rotate(-360deg)} }
+
+    /* Loader text below spinner */
+    .loader-msg {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: rgba(93,221,107,0.6);
+      letter-spacing: 0.15em;
+      animation: blink 1.2s ease-in-out infinite alternate;
+    }
+    @keyframes blink { from{opacity:.4} to{opacity:1} }
+
+    /* ===== HAND EMOJI (unchanged) ===== */
+    .🤚 {
+      --skin-color: #E4C560;
+      --tap-speed: 0.6s;
+      --tap-stagger: 0.1s;
+      position: relative;
+      width: 80px; height: 60px;
+      margin-left: 80px;
+    }
+    .🤚:before {
+      content: '';
+      display: block;
+      width: 180%; height: 75%;
+      position: absolute; top: 70%; right: 20%;
+      background-color: black;
+      border-radius: 40px 10px;
+      filter: blur(10px);
+      opacity: 0.3;
+    }
+    .🌴 {
+      display: block; width: 100%; height: 100%;
+      position: absolute; top:0; left:0;
+      background-color: var(--skin-color);
+      border-radius: 10px 40px;
+    }
+    .👍 {
+      position: absolute;
+      width: 120%; height: 38px;
+      background-color: var(--skin-color);
+      bottom: -18%; right: 1%;
+      transform-origin: calc(100% - 20px) 20px;
+      transform: rotate(-20deg);
+      border-radius: 30px 20px 20px 10px;
+      border-bottom: 2px solid rgba(0,0,0,0.1);
+      border-left:  2px solid rgba(0,0,0,0.1);
+    }
+    .👍:after {
+      width:20%; height:60%; content:'';
+      background-color:rgba(255,255,255,0.3);
+      position:absolute; bottom:-8%; left:5px;
+      border-radius:60% 10% 10% 30%;
+      border-right:2px solid rgba(0,0,0,0.05);
+    }
+    .👉 {
+      position:absolute; width:80%; height:35px;
+      background-color:var(--skin-color);
+      bottom:32%; right:64%;
+      transform-origin:100% 20px;
+      animation-duration:calc(var(--tap-speed)*2);
+      animation-timing-function:ease-in-out;
+      animation-iteration-count:infinite;
+      transform:rotate(10deg);
+    }
+    .👉:before {
+      content:''; position:absolute;
+      width:140%; height:30px;
+      background-color:var(--skin-color);
+      bottom:8%; right:65%;
+      transform-origin:calc(100% - 20px) 20px;
+      transform:rotate(-60deg);
+      border-radius:20px;
+    }
+    .👉:nth-child(1){animation-delay:0;              filter:brightness(70%); animation-name:tap1;}
+    .👉:nth-child(2){animation-delay:var(--tap-stagger);         filter:brightness(80%); animation-name:tap2;}
+    .👉:nth-child(3){animation-delay:calc(var(--tap-stagger)*2); filter:brightness(90%); animation-name:tap3;}
+    .👉:nth-child(4){animation-delay:calc(var(--tap-stagger)*3); filter:brightness(100%);animation-name:tap4;}
+    @keyframes tap1{0%,50%,100%{transform:rotate(10deg) scale(.4)} 40%{transform:rotate(50deg) scale(.4)}}
+    @keyframes tap2{0%,50%,100%{transform:rotate(10deg) scale(.6)} 40%{transform:rotate(50deg) scale(.6)}}
+    @keyframes tap3{0%,50%,100%{transform:rotate(10deg) scale(.8)} 40%{transform:rotate(50deg) scale(.8)}}
+    @keyframes tap4{0%,50%,100%{transform:rotate(10deg) scale(1)}  40%{transform:rotate(50deg) scale(1)}}
+
+    /* ===== RESULT PANEL ===== */
+    .result {
+      display: none;
+      width: 100%;
+      animation: slideIn 0.6s cubic-bezier(.22,1,.36,1) forwards;
+    }
+    @keyframes slideIn {
+      from{transform:translateY(40px);opacity:0}
+      to  {transform:translateY(0);   opacity:1}
+    }
+
+    /* Result header */
+    .result-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .result-header .badge {
+      display: inline-block;
+      background: rgba(93,221,107,0.12);
+      border: 0.5px solid rgba(93,221,107,0.3);
+      border-radius: 50px;
+      padding: 5px 16px;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--glow);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .result-header h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .result-header h2 em { font-style:italic; color:var(--glow); }
+
+    /* ===== TABLE ===== */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 0.5px solid var(--border);
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(8px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead tr {
+      background: rgba(30,77,38,0.6);
+    }
+    thead th {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(93,221,107,0.7);
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 0.5px solid var(--border);
+    }
+    thead th:first-child { border-radius: 14px 0 0 0; }
+    thead th:last-child  { border-radius: 0 14px 0 0; }
+
+    tbody tr {
+      border-bottom: 0.5px solid rgba(90,210,100,0.07);
+      transition: background 0.2s;
+      animation: rowIn 0.5s ease both;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(93,221,107,0.06); }
+
+    @keyframes rowIn {
+      from{opacity:0;transform:translateX(-12px)}
+      to  {opacity:1;transform:translateX(0)}
+    }
+
+    td {
+      padding: 11px 14px;
+      vertical-align: middle;
+      color: #fff;
+    }
+
+    /* Sl No */
+    .td-sl {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: rgba(93,221,107,0.45);
+      width: 36px;
+      text-align: center;
+    }
+
+    /* Crop name */
+    .td-crop {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      color: #e8ffe8;
+      white-space: nowrap;
+    }
+    .crop-icon { margin-right: 6px; font-size: 14px; }
+
+    /* Confidence */
+    .td-conf {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      width: 60px;
+    }
+
+    /* Bar cell */
+    .td-bar { width: 40%; min-width: 110px; }
+
+    .bar-outer {
+      height: 10px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .bar-inner {
+      height: 100%;
+      width: 0%;
+      border-radius: 10px;
+      transition: width 1s cubic-bezier(.34,1.2,.64,1);
+      position: relative;
+    }
+    .bar-inner::after {
+      content:'';
+      position:absolute; right:0; top:0; bottom:0;
+      width:3px; background:rgba(255,255,255,0.6);
+      border-radius:0 10px 10px 0;
+    }
+
+    /* confidence colour tiers */
+    .tier-high   { background: linear-gradient(90deg,#1e7a2a,#5ddd6b); }
+    .tier-mid    { background: linear-gradient(90deg,#5a6e00,#c8d400); }
+    .tier-low    { background: linear-gradient(90deg,#7a3a00,#f0a500); }
+
+    .conf-high { color: #5ddd6b; }
+    .conf-mid  { color: #c8d400; }
+    .conf-low  { color: #f0a500; }
+
+    /* TOP CROP HIGHLIGHT */
+    tbody tr:first-child { background: rgba(93,221,107,0.06); }
+    tbody tr:first-child .td-crop { color: var(--glow); }
+    .top-badge {
+      display:inline-block;
+      background:rgba(93,221,107,0.18);
+      border:0.5px solid rgba(93,221,107,0.35);
+      border-radius:4px;
+      font-size:8px;
+      padding:1px 5px;
+      color:var(--glow);
+      font-family:'Space Mono',monospace;
+      letter-spacing:.06em;
+      vertical-align:middle;
+      margin-left:5px;
+    }
+
+    /* ===== BACK BUTTON ===== */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 20px;
+      padding: 11px 26px;
+      background: linear-gradient(135deg, #1e4d26, #3aaa4a);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 50px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 18px rgba(58,170,74,0.3);
+    }
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 26px rgba(58,170,74,0.45);
+    }
+
+    /* ===== MOBILE ===== */
+    @media (max-width:600px) {
+      .card { width:96vw; border-radius:25px; }
+      .card-int { min-height:480px; padding:20px 12px; }
+      .result-header h2 { font-size:1.3rem; }
+      td, th { padding:9px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== ANIMATED BACKGROUND ===== -->
+<div class="field-bg" id="fieldBg"></div>
+
+<!-- Crop stalks -->
+<div class="stalks" id="stalks"></div>
+
+<!-- ===== CARD ===== -->
+<div class="page-wrap">
+  <div class="card">
+    <div class="card-int">
+
+      <!-- LOADER (kept as-is) -->
+      <div class="loader-wrap" id="loaderWrap">
+        <div class="loader">
+          <span>predicting.....</span>
+        </div>
+
+        <div class="🤚">
+          <div class="👉"></div>
+          <div class="👉"></div>
+          <div class="👉"></div>
+          <div class="👉"></div>
+          <div class="🌴"></div>
+          <div class="👍"></div>
+        </div>
+
+        <span class="loader-msg">// analysing soil data …</span>
+      </div>
+
+      <!-- RESULT TABLE -->
+      <div class="result" id="result">
+
+        <div class="result-header">
+          <div class="badge">🌾 Recommendation Ready</div>
+          <h2>Best <em>Crops</em> for Your Soil</h2>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Crop Name</th>
+                <th>Confidence</th>
+                <th>Match Level</th>
+              </tr>
+            </thead>
+            <tbody id="cropTableBody">
+
+              {% if crops %}
+                {% for item in crops %}
+                  <tr style="animation-delay:{{ loop.index0 * 0.08 }}s">
+                    <td class="td-sl">{{ loop.index }}</td>
+                    <td class="td-crop">
+                      <span class="crop-icon">🌱</span>
+                      {{ item.crop }}
+                      {% if loop.first %}<span class="top-badge">TOP</span>{% endif %}
+                    </td>
+                    <td class="td-conf
+                      {% if item.confidence >= 75 %} conf-high
+                      {% elif item.confidence >= 45 %} conf-mid
+                      {% else %} conf-low {% endif %}">
+                      {{ item.confidence }}%
+                    </td>
+                    <td class="td-bar">
+                      <div class="bar-outer">
+                        <div class="bar-inner
+                          {% if item.confidence >= 75 %} tier-high
+                          {% elif item.confidence >= 45 %} tier-mid
+                          {% else %} tier-low {% endif %}"
+                          data-width="{{ item.confidence }}">
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="4" style="text-align:center;color:rgba(255,255,255,0.4);font-family:'Space Mono',monospace;font-size:12px;padding:30px;">
+                    No prediction data received.
+                  </td>
+                </tr>
+              {% endif %}
+
+            </tbody>
+          </table>
+        </div>
+
+        <div style="text-align:center;">
+          <a href="{{ url_for('crop.soil') }}" class="back-btn">
+            🌿 Analyse Another Sample
+          </a>
+        </div>
+
+      </div><!-- /result -->
+
+    </div><!-- /card-int -->
+  </div><!-- /card -->
+</div>
+
+<script>
+  /* ===== BACKGROUND PARTICLES ===== */
+  (function(){
+    const bg = document.getElementById('fieldBg');
+    for(let i=0;i<20;i++){
+      const p=document.createElement('div'); p.className='particle';
+      const s=Math.random()*2.5+0.8;
+      p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${10+Math.random()*16}s;animation-delay:${Math.random()*16}s;`;
+      bg.appendChild(p);
+    }
+  })();
+
+  /* ===== CROP STALKS ===== */
+  (function(){
+    const wrap = document.getElementById('stalks');
+    const count = Math.floor(window.innerWidth / 55);
+    for(let i=0;i<count;i++){
+      const s=document.createElement('div'); s.className='stalk';
+      const h = 45 + Math.random()*40;
+      const delay = Math.random()*2;
+      s.style.cssText=`left:${(i/(count-1))*100}%;height:${h}px;animation-delay:${delay}s;animation-duration:${2.5+Math.random()*1.5}s;`;
+      wrap.appendChild(s);
+    }
+  })();
+
+  /* ===== REVEAL RESULT AFTER 5 s ===== */
+  setTimeout(function(){
+    document.getElementById('loaderWrap').style.display = 'none';
+    const result = document.getElementById('result');
+    result.style.display = 'block';
+
+    /* Animate bars */
+    document.querySelectorAll('.bar-inner').forEach(function(bar){
+      const w = bar.getAttribute('data-width');
+      setTimeout(function(){ bar.style.width = w + '%'; }, 120);
+    });
+  }, 5000);
+</script>
+</body>
+</html>

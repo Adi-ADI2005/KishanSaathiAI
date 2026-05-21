@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kishan Saathi AI — Admin</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ─── TOKENS ─────────────────────────────────── */
+    :root {
+      --bg:          #060e08;
+      --bg-mid:      #0b1a0e;
+      --bg-panel:    #0f2312;
+      --g900:        #052e0f;
+      --g800:        #0a4a1e;
+      --g700:        #0d6b2b;
+      --g600:        #16a34a;
+      --em:          #10b981;
+      --em-lt:       #34d399;
+      --em-glow:     rgba(16,185,129,.32);
+      --gold:        #d4a832;
+      --glass:       rgba(10,40,18,.55);
+      --gborder:     rgba(16,185,129,.18);
+      --gshadow:     0 8px 32px rgba(0,0,0,.45);
+
+      /* layout */
+      --sidebar-w:   260px;
+      --sidebar-col: 68px;
+      --topbar-h:    60px;
+      --mobile-nav:  62px;
+      --safe-b:      env(safe-area-inset-bottom, 0px);
+      --safe-t:      env(safe-area-inset-top, 0px);
+
+      --radius:      14px;
+      --tr:          .28s cubic-bezier(.4,0,.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: #d1f0dc;
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+    h1,h2,h3,h4,h5,h6,.brand-name,.nav-label,.section-title,
+    .stat-card-label,.stat-card-value { font-family: 'Syne', sans-serif; }
+
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none;
+      background:
+        radial-gradient(ellipse 60% 50% at 10% 20%, rgba(16,185,129,.1) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 90% 80%, rgba(5,46,15,.4) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 40% at 50% 50%, rgba(11,26,14,.9) 0%, transparent 100%);
+    }
+
+    .glass {
+      background: var(--glass);
+      border: 1px solid var(--gborder);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      box-shadow: var(--gshadow);
+    }
+    a { text-decoration: none; }
+
+    /* ─── LAYOUT SHELL ─────────────────────────── */
+    .app-shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      grid-template-rows: var(--topbar-h) 1fr;
+      grid-template-areas:
+        "sidebar topbar"
+        "sidebar content";
+      height: 100dvh;
+      overflow: hidden;
+    }
+    .app-shell.collapsed {
+      grid-template-columns: var(--sidebar-col) 1fr;
+    }
+
+    /* ─── SIDEBAR ──────────────────────────────── */
+    .sidebar {
+      grid-area: sidebar;
+      display: flex; flex-direction: column;
+      background: linear-gradient(180deg, rgba(6,20,9,.98) 0%, rgba(8,28,12,.98) 100%);
+      border-right: 1px solid var(--gborder);
+      overflow: hidden;
+      transition: width var(--tr);
+      z-index: 100;
+    }
+    .app-shell.collapsed .sidebar { width: var(--sidebar-col); }
+
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 12px;
+      padding: 0 16px; height: var(--topbar-h);
+      border-bottom: 1px solid var(--gborder);
+      flex-shrink: 0; overflow: hidden;
+    }
+    .brand-logo {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--g700), var(--em));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; box-shadow: 0 0 14px var(--em-glow);
+    }
+    .brand-text { overflow: hidden; white-space: nowrap; transition: opacity var(--tr), width var(--tr); }
+    .brand-name { font-size: 14px; font-weight: 700; color: var(--em-lt); display: block; }
+    .brand-sub  { font-family: 'Lora', serif; font-size: 10px; color: #6b9e7a; display: block; margin-top: 1px; }
+    .app-shell.collapsed .brand-text { opacity: 0; width: 0; pointer-events: none; }
+
+    .sidebar-nav {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: 12px 0;
+      scrollbar-width: thin; scrollbar-color: var(--g700) transparent;
+    }
+    .sidebar-nav::-webkit-scrollbar { width: 3px; }
+    .sidebar-nav::-webkit-scrollbar-thumb { background: var(--g700); border-radius: 3px; }
+
+    .nav-section-label {
+      font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700;
+      letter-spacing: 2px; color: #3d7a52; text-transform: uppercase;
+      padding: 14px 20px 5px; white-space: nowrap;
+      transition: opacity var(--tr);
+    }
+    .app-shell.collapsed .nav-section-label { opacity: 0; }
+
+    .nav-item { list-style: none; }
+    .nav-link {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; margin: 2px 8px;
+      border-radius: 10px; color: #8fbfa0;
+      font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 500;
+      transition: all var(--tr); cursor: pointer;
+      white-space: nowrap; overflow: hidden;
+      border: 1px solid transparent; position: relative;
+    }
+    .nav-link:hover { background: rgba(16,185,129,.09); color: var(--em-lt); }
+    .nav-link.active {
+      background: linear-gradient(90deg,rgba(16,185,129,.2),rgba(16,185,129,.04));
+      color: var(--em-lt); border-color: rgba(16,185,129,.22);
+      box-shadow: 0 0 18px rgba(16,185,129,.12);
+    }
+    .nav-link.active::before {
+      content:''; position:absolute; left:0; top:50%; transform:translateY(-50%);
+      width:3px; height:58%; background:var(--em); border-radius:0 3px 3px 0;
+    }
+    .nav-icon { font-size: 17px; flex-shrink: 0; width: 22px; text-align: center; }
+    .nav-label { transition: opacity var(--tr); }
+    .app-shell.collapsed .nav-label { opacity: 0; width: 0; overflow: hidden; }
+
+    .nav-link.danger { color: #fb7185; }
+    .nav-link.danger:hover { background: rgba(248,113,113,.1); color: #fb7185; }
+
+    .sidebar-footer {
+      padding: 12px 14px; border-top: 1px solid var(--gborder);
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0; overflow: hidden;
+    }
+    .sidebar-avatar {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--g700), var(--em));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; border: 2px solid rgba(16,185,129,.3);
+    }
+    .sidebar-footer-text { overflow: hidden; white-space: nowrap; transition: opacity var(--tr); }
+    .sidebar-footer-text strong { font-family:'Syne',sans-serif; font-size:12px; color:#d1f0dc; display:block; }
+    .sidebar-footer-text span   { font-size:10px; color:#5a9a6e; }
+    .app-shell.collapsed .sidebar-footer-text { opacity: 0; pointer-events: none; }
+
+    /* ─── TOPBAR ───────────────────────────────── */
+    .topbar {
+      grid-area: topbar;
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 20px; padding-top: var(--safe-t);
+      background: rgba(6,14,8,.88);
+      border-bottom: 1px solid var(--gborder);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      z-index: 90; flex-shrink: 0;
+    }
+    .topbar-toggle {
+      width: 36px; height: 36px; border-radius: 9px; border: none;
+      background: rgba(16,185,129,.07); color: var(--em);
+      font-size: 18px; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: background var(--tr);
+    }
+    .topbar-toggle:hover { background: rgba(16,185,129,.15); }
+    .page-title {
+      font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+      color: var(--em-lt); white-space: nowrap; flex-shrink: 0;
+    }
+    .topbar-search {
+      flex: 1; max-width: 340px; margin: 0 8px; position: relative;
+    }
+    .topbar-search input {
+      width: 100%;
+      background: rgba(10,40,18,.6); border: 1px solid var(--gborder);
+      border-radius: 22px; color: #d1f0dc;
+      font-family: 'Lora', serif; font-size: 13px;
+      padding: 8px 16px 8px 38px; outline: none;
+      transition: border-color var(--tr), box-shadow var(--tr);
+    }
+    .topbar-search input:focus { border-color: var(--em); box-shadow: 0 0 0 3px rgba(16,185,129,.12); }
+    .topbar-search input::placeholder { color: #3d7a52; }
+    .topbar-search .si { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#3d7a52; font-size:13px; pointer-events:none; }
+    .topbar-right { display:flex; align-items:center; gap:8px; margin-left:auto; flex-shrink:0; }
+
+    .tb-icon-btn {
+      width: 34px; height: 34px;
+      background: rgba(10,40,18,.6); border: 1px solid var(--gborder);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      color: #8fbfa0; font-size: 14px; cursor: pointer;
+      transition: all var(--tr); position: relative; flex-shrink: 0;
+    }
+    .tb-icon-btn:hover { border-color: var(--em); color: var(--em); }
+    .tb-icon-btn .bdot {
+      position:absolute; top:5px; right:6px;
+      width:7px; height:7px; background:var(--em);
+      border-radius:50%; border:1.5px solid var(--bg);
+    }
+
+    .admin-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 10px;
+      background: rgba(10,40,18,.6); border: 1px solid var(--gborder);
+      border-radius: 9px; cursor: pointer; transition: all var(--tr);
+      position: relative; flex-shrink: 0;
+    }
+    .admin-pill:hover { border-color: var(--em); }
+    .admin-pill-av {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg,var(--g700),var(--em));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; border: 1.5px solid var(--em);
+    }
+    .admin-pill-name { font-family:'Syne',sans-serif; font-size:12px; font-weight:600; color:var(--em-lt); white-space:nowrap; }
+    .admin-pill .chev { font-size:10px; color:#5a9a6e; transition:transform var(--tr); }
+    .admin-pill.open .chev { transform:rotate(180deg); }
+
+    .admin-dropdown {
+      position:absolute; top:calc(100% + 8px); right:0;
+      min-width:160px;
+      background: rgba(6,18,9,.97); border:1px solid var(--gborder);
+      border-radius:12px; box-shadow:0 16px 40px rgba(0,0,0,.6);
+      overflow:hidden; opacity:0; pointer-events:none;
+      transform:translateY(-5px); transition:opacity var(--tr),transform var(--tr); z-index:2000;
+    }
+    .admin-pill.open .admin-dropdown { opacity:1; pointer-events:auto; transform:translateY(0); }
+    .admin-dropdown a {
+      display:flex; align-items:center; gap:9px; padding:10px 16px;
+      color:#8fbfa0; font-family:'Syne',sans-serif; font-size:12px;
+      transition:background var(--tr); border-bottom:1px solid rgba(16,185,129,.06);
+    }
+    .admin-dropdown a:last-child { border-bottom:none; }
+    .admin-dropdown a:hover { background:rgba(16,185,129,.1); color:var(--em-lt); }
+    .admin-dropdown a.red { color:#fb7185; }
+    .admin-dropdown a.red:hover { background:rgba(248,113,113,.1); color:#fb7185; }
+
+    /* ─── CONTENT AREA ─────────────────────────── */
+    .content-area {
+      grid-area: content;
+      overflow-y: auto; overflow-x: hidden;
+      padding: 24px 24px 32px;
+      scrollbar-width: thin; scrollbar-color: var(--g700) transparent;
+    }
+    .content-area::-webkit-scrollbar { width: 4px; }
+    .content-area::-webkit-scrollbar-thumb { background:var(--g700); border-radius:4px; }
+
+    /* ─── SECTIONS ─────────────────────────────── */
+    .section { display: none; }
+    .section.active { display: block; animation: fadeUp .35s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 22px; flex-wrap: wrap; gap: 10px;
+    }
+    .section-title {
+      font-size: 20px; font-weight: 700; color: var(--em-lt);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .title-icon {
+      width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(135deg,var(--g700),var(--em));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; box-shadow: 0 0 14px var(--em-glow);
+    }
+
+    /* ─── STAT GRID ────────────────────────────── */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+      gap: 16px; margin-bottom: 28px;
+    }
+    .stat-card {
+      border-radius: var(--radius); padding: 20px 18px;
+      position: relative; overflow: hidden;
+      transition: transform var(--tr), box-shadow var(--tr);
+      animation: fadeUp .4s ease both;
+    }
+    .stat-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,.5),0 0 28px var(--em-glow); }
+    .stat-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(16,185,129,.06),transparent); pointer-events:none; }
+    .stat-icon { width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:12px; }
+    .stat-label { font-size:10px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:#5a9a6e; margin-bottom:5px; }
+    .stat-value { font-size:28px; font-weight:800; color:#d1f0dc; line-height:1; margin-bottom:8px; }
+    .stat-trend { font-family:'Lora',serif; font-size:12px; display:flex; align-items:center; gap:4px; }
+    .t-up { color:var(--em); } .t-dn { color:#f87171; }
+    .stat-bg-icon { position:absolute; right:-8px; bottom:-8px; font-size:66px; opacity:.04; color:var(--em); pointer-events:none; }
+    .sc-g  .stat-icon { background:rgba(16,185,129,.14); color:var(--em); }
+    .sc-b  .stat-icon { background:rgba(59,130,246,.14);  color:#60a5fa; }
+    .sc-a  .stat-icon { background:rgba(251,191,36,.14);  color:#fbbf24; }
+    .sc-r  .stat-icon { background:rgba(248,113,113,.14); color:#fb7185; }
+    .sc-p  .stat-icon { background:rgba(167,139,250,.14); color:#a78bfa; }
+    .sc-c  .stat-icon { background:rgba(34,211,238,.14);  color:#22d3ee; }
+    .stat-card:nth-child(1){animation-delay:.04s} .stat-card:nth-child(2){animation-delay:.08s}
+    .stat-card:nth-child(3){animation-delay:.12s} .stat-card:nth-child(4){animation-delay:.16s}
+    .stat-card:nth-child(5){animation-delay:.20s} .stat-card:nth-child(6){animation-delay:.24s}
+
+    /* ─── TABLE CARD ────────────────────────────── */
+    .table-card { border-radius:var(--radius); padding:20px; margin-bottom:22px; }
+    .tc-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:10px; flex-wrap:wrap; }
+    .table-search { position:relative; }
+    .table-search input { background:rgba(10,40,18,.6); border:1px solid var(--gborder); border-radius:8px; color:#d1f0dc; font-family:'Lora',serif; font-size:13px; padding:7px 13px 7px 34px; outline:none; width:200px; transition:border-color var(--tr); }
+    .table-search input:focus { border-color:var(--em); }
+    .table-search input::placeholder { color:#3d7a52; }
+    .table-search .si { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:#3d7a52; font-size:12px; pointer-events:none; }
+    .filter-sel { background:rgba(10,40,18,.6); border:1px solid var(--gborder); border-radius:8px; color:#8fbfa0; font-family:'Lora',serif; font-size:13px; padding:7px 12px; outline:none; cursor:pointer; }
+    .filter-sel option { background:#0b1a0e; }
+    .custom-table { width:100%; border-collapse:separate; border-spacing:0 5px; }
+    .custom-table thead th { font-family:'Syne',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.4px; text-transform:uppercase; color:#3d7a52; padding:9px 14px; border-bottom:1px solid var(--gborder); }
+    .custom-table tbody tr { background:rgba(10,40,18,.4); transition:background var(--tr),box-shadow var(--tr); }
+    .custom-table tbody tr:hover { background:rgba(16,185,129,.08); box-shadow:0 0 0 1px rgba(16,185,129,.14); }
+    .custom-table td { padding:12px 14px; color:#a7d5b8; font-size:13px; vertical-align:middle; }
+    .custom-table tbody tr td:first-child { border-radius:10px 0 0 10px; }
+    .custom-table tbody tr td:last-child  { border-radius:0 10px 10px 0; }
+    .user-cell { display:flex; align-items:center; gap:10px; }
+    .u-av { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--g700),var(--em)); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:#d1f0dc; flex-shrink:0; }
+    .u-name { font-family:'Syne',sans-serif; font-size:13px; color:#d1f0dc; }
+    .badge-s { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; font-family:'Syne',sans-serif; font-size:10px; font-weight:700; letter-spacing:.7px; }
+    .badge-s::before { content:''; width:5px; height:5px; border-radius:50%; }
+    .s-active   { background:rgba(16,185,129,.12); color:var(--em); border:1px solid rgba(16,185,129,.28); }
+    .s-active::before { background:var(--em); box-shadow:0 0 5px var(--em); }
+    .s-inactive { background:rgba(248,113,113,.09); color:#fb7185; border:1px solid rgba(248,113,113,.22); }
+    .s-inactive::before{ background:#fb7185; }
+    .s-pending  { background:rgba(251,191,36,.09);  color:#fbbf24; border:1px solid rgba(251,191,36,.22); }
+    .s-pending::before { background:#fbbf24; }
+    .btn-act { width:28px; height:28px; border-radius:7px; display:inline-flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; border:none; transition:all var(--tr); margin:0 2px; }
+    .btn-edit { background:rgba(16,185,129,.1); color:var(--em); }
+    .btn-edit:hover { background:var(--em); color:#000; }
+    .btn-del  { background:rgba(248,113,113,.1); color:#fb7185; }
+    .btn-del:hover  { background:#fb7185; color:#fff; }
+    .pg-row { display:flex; gap:5px; justify-content:flex-end; margin-top:14px; flex-wrap:wrap; }
+    .pg-btn { width:32px; height:32px; border-radius:8px; background:rgba(10,40,18,.6); border:1px solid var(--gborder); color:#8fbfa0; font-family:'Syne',sans-serif; font-size:12px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all var(--tr); }
+    .pg-btn:hover,.pg-btn.active { background:var(--em); color:#000; border-color:var(--em); box-shadow:0 0 10px var(--em-glow); }
+
+    /* ─── FEEDBACK ───────────────────────────────── */
+    .fb-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:15px; }
+    .fb-card { border-radius:var(--radius); padding:18px; transition:transform var(--tr),box-shadow var(--tr); }
+    .fb-card:hover { transform:translateY(-3px); box-shadow:0 12px 28px rgba(0,0,0,.4),0 0 18px var(--em-glow); }
+    .fb-head { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .fb-av { width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--g700),var(--em)); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#d1f0dc; flex-shrink:0; }
+    .fb-name { font-family:'Syne',sans-serif; font-size:13px; color:#d1f0dc; }
+    .fb-date { font-size:11px; color:#5a9a6e; }
+    .fb-stars { color:var(--gold); font-size:13px; letter-spacing:2px; margin-bottom:8px; }
+    .fb-text { font-size:13px; color:#8fbfa0; line-height:1.7; margin-bottom:12px; }
+    .fb-acts { display:flex; gap:7px; flex-wrap:wrap; }
+    .btn-respond { padding:6px 13px; border-radius:7px; background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.22); color:var(--em); font-family:'Syne',sans-serif; font-size:11px; cursor:pointer; transition:all var(--tr); }
+    .btn-respond:hover { background:var(--em); color:#000; }
+    .btn-dlt { padding:6px 13px; border-radius:7px; background:rgba(248,113,113,.08); border:1px solid rgba(248,113,113,.2); color:#fb7185; font-family:'Syne',sans-serif; font-size:11px; cursor:pointer; transition:all var(--tr); }
+    .btn-dlt:hover { background:#fb7185; color:#fff; }
+
+    /* ─── SCHEME FORM ────────────────────────────── */
+    .scheme-form-card { border-radius:var(--radius); padding:24px; margin-bottom:24px; }
+    .form-card-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--em-lt); margin-bottom:20px; display:flex; align-items:center; gap:10px; padding-bottom:13px; border-bottom:1px solid var(--gborder); }
+    .form-title-icon { width:32px; height:32px; border-radius:9px; background:rgba(16,185,129,.14); display:flex; align-items:center; justify-content:center; font-size:15px; color:var(--em); }
+    .sfg { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; }
+    .sfg .col-full { grid-column:1/-1; }
+    .form-lbl { font-family:'Syne',sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#5a9a6e; margin-bottom:6px; display:block; }
+    .inp { width:100%; background:rgba(10,40,18,.6); border:1px solid var(--gborder); border-radius:10px; color:#d1f0dc; font-family:'Lora',serif; font-size:13px; padding:10px 14px; outline:none; resize:vertical; transition:border-color var(--tr),box-shadow var(--tr); }
+    .inp:focus { border-color:var(--em); box-shadow:0 0 0 3px rgba(16,185,129,.1); }
+    .inp::placeholder { color:#3d7a52; }
+    .emoji-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:7px; }
+    .emoji-btn { width:40px; height:40px; border-radius:10px; font-size:18px; background:rgba(10,40,18,.5); border:1px solid var(--gborder); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all var(--tr); }
+    .emoji-btn:hover { background:rgba(16,185,129,.14); border-color:var(--em); transform:scale(1.1); }
+    .emoji-btn.selected { background:rgba(16,185,129,.2); border-color:var(--em); box-shadow:0 0 9px var(--em-glow); }
+    .icon-preview { width:54px; height:54px; border-radius:14px; background:linear-gradient(135deg,var(--g700),var(--em)); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; box-shadow:0 4px 14px var(--em-glow); margin-top:10px; }
+    .tag-grp { display:flex; flex-wrap:wrap; gap:7px; margin-top:7px; }
+    .tag-tgl { padding:6px 13px; border-radius:20px; cursor:pointer; font-family:'Syne',sans-serif; font-size:11px; font-weight:700; border:1px solid var(--gborder); background:rgba(10,40,18,.5); color:#6b9e7a; transition:all var(--tr); user-select:none; }
+    .tag-tgl:hover { border-color:var(--em); color:var(--em-lt); }
+    .tag-tgl.selected { background:rgba(16,185,129,.18); border-color:var(--em); color:var(--em-lt); }
+    .benefit-row { display:flex; gap:7px; align-items:center; margin-bottom:7px; }
+    .benefit-row .inp { flex:1; padding:8px 13px; }
+    .btn-rm { width:32px; height:32px; border-radius:8px; flex-shrink:0; background:rgba(248,113,113,.09); border:1px solid rgba(248,113,113,.22); color:#fb7185; display:flex; align-items:center; justify-content:center; font-size:13px; cursor:pointer; transition:all var(--tr); }
+    .btn-rm:hover { background:#fb7185; color:#fff; }
+    .btn-add-ben { padding:7px 14px; border-radius:8px; background:rgba(16,185,129,.07); border:1px dashed rgba(16,185,129,.32); color:var(--em); font-family:'Syne',sans-serif; font-size:11px; cursor:pointer; transition:all var(--tr); display:flex; align-items:center; gap:5px; margin-top:3px; }
+    .btn-add-ben:hover { background:rgba(16,185,129,.14); border-style:solid; }
+    .form-acts { display:flex; gap:10px; align-items:center; margin-top:20px; flex-wrap:wrap; }
+    .btn-primary { padding:10px 22px; border-radius:10px; background:linear-gradient(135deg,var(--g700),var(--em)); border:none; color:#fff; font-family:'Syne',sans-serif; font-size:13px; font-weight:700; cursor:pointer; transition:all var(--tr); box-shadow:0 4px 14px var(--em-glow); display:flex; align-items:center; gap:7px; }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 22px var(--em-glow); }
+    .btn-primary:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+    .btn-reset-f { padding:10px 18px; border-radius:10px; background:rgba(10,40,18,.6); border:1px solid var(--gborder); color:#8fbfa0; font-family:'Syne',sans-serif; font-size:13px; cursor:pointer; transition:all var(--tr); }
+    .btn-reset-f:hover { border-color:var(--em); color:var(--em-lt); }
+    .form-success { display:none; align-items:center; gap:9px; padding:9px 15px; border-radius:10px; background:rgba(16,185,129,.1); border:1px solid rgba(16,185,129,.28); color:var(--em-lt); font-family:'Syne',sans-serif; font-size:13px; }
+    .form-success.show { display:flex; animation:fadeUp .3s ease; }
+
+    /* ─── SCHEME CARDS ───────────────────────────── */
+    .schemes-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; margin-top:22px; }
+    .scheme-card { border-radius:16px; overflow:hidden; position:relative; transition:transform var(--tr),box-shadow var(--tr); display:flex; flex-direction:column; }
+    .scheme-card:hover { transform:translateY(-4px); box-shadow:0 20px 48px rgba(0,0,0,.5),0 0 28px var(--em-glow); }
+    .sc-bar { height:4px; background:linear-gradient(90deg,var(--g700),var(--em)); }
+    .sc-body { padding:20px 20px 12px; flex:1; }
+    .sc-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:12px; }
+    .tag { padding:3px 9px; border-radius:20px; font-family:'Syne',sans-serif; font-size:10px; font-weight:700; }
+    .tag-new     { background:rgba(52,211,153,.13); color:var(--em-lt); border:1px solid rgba(52,211,153,.28); }
+    .tag-popular { background:rgba(251,191,36,.13);  color:#fbbf24; border:1px solid rgba(251,191,36,.28); }
+    .tag-central { background:rgba(96,165,250,.11);  color:#60a5fa; border:1px solid rgba(96,165,250,.22); }
+    .tag-state   { background:rgba(167,139,250,.11); color:#a78bfa; border:1px solid rgba(167,139,250,.22); }
+    .tag-subsidy { background:rgba(16,185,129,.11);  color:var(--em); border:1px solid rgba(16,185,129,.22); }
+    .tag-loan    { background:rgba(251,191,36,.11);  color:#fbbf24; border:1px solid rgba(251,191,36,.22); }
+    .tag-insurance{background:rgba(248,113,113,.11); color:#fb7185; border:1px solid rgba(248,113,113,.22); }
+    .sc-icon-title { display:flex; align-items:center; gap:12px; margin-bottom:11px; }
+    .sc-ico { width:50px; height:50px; border-radius:13px; flex-shrink:0; background:linear-gradient(135deg,var(--g700),var(--em)); display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 4px 12px var(--em-glow); }
+    .sc-name { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; color:#d1f0dc; line-height:1.35; }
+    .sc-desc { font-size:13px; color:#8fbfa0; line-height:1.7; margin-bottom:12px; }
+    .sc-ben-title { font-family:'Syne',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.3px; text-transform:uppercase; color:#3d7a52; margin-bottom:7px; }
+    .sc-ben-item { display:flex; align-items:flex-start; gap:7px; font-size:12px; color:#a7d5b8; line-height:1.5; margin-bottom:4px; }
+    .sc-ben-item i { color:var(--em); font-size:10px; margin-top:2px; flex-shrink:0; }
+    .sc-elig { margin-top:11px; padding:9px 11px; border-radius:9px; background:rgba(16,185,129,.05); border:1px solid rgba(16,185,129,.11); font-size:12px; color:#7abf95; line-height:1.5; display:flex; align-items:flex-start; gap:7px; }
+    .sc-elig i { color:var(--em); font-size:11px; margin-top:2px; flex-shrink:0; }
+    .sc-foot { display:flex; align-items:center; justify-content:space-between; padding:12px 20px; border-top:1px solid rgba(16,185,129,.07); background:rgba(6,14,8,.3); gap:8px; }
+    .btn-visit { display:inline-flex; align-items:center; gap:6px; padding:7px 16px; border-radius:8px; background:linear-gradient(135deg,var(--g700),var(--em)); color:#fff; font-family:'Syne',sans-serif; font-size:11px; font-weight:700; transition:all var(--tr); box-shadow:0 3px 10px var(--em-glow); }
+    .btn-visit:hover { transform:translateY(-1px); box-shadow:0 6px 18px var(--em-glow); color:#fff; }
+    .sc-card-acts { display:flex; gap:5px; }
+    .btn-cedit,.btn-cdel { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; cursor:pointer; border:none; transition:all var(--tr); }
+    .btn-cedit { background:rgba(16,185,129,.09); color:var(--em); }
+    .btn-cedit:hover { background:var(--em); color:#000; }
+    .btn-cdel  { background:rgba(248,113,113,.09); color:#fb7185; }
+    .btn-cdel:hover  { background:#fb7185; color:#fff; }
+    .schemes-empty { grid-column:1/-1; text-align:center; padding:55px 20px; color:#3d7a52; }
+    .schemes-empty i { font-size:44px; margin-bottom:12px; display:block; opacity:.35; }
+    .schemes-empty p { font-family:'Syne',sans-serif; font-size:13px; }
+    .spinner { width:34px; height:34px; border-radius:50%; border:3px solid rgba(16,185,129,.18); border-top-color:var(--em); animation:spin .7s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .schemes-loading { text-align:center; padding:55px 20px; color:#3d7a52; font-family:'Syne',sans-serif; font-size:13px; display:flex; flex-direction:column; align-items:center; gap:12px; grid-column:1/-1; }
+
+    /* ─── SETTINGS ───────────────────────────────── */
+    .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .settings-group { border-radius:var(--radius); padding:22px; }
+    .sg-title { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--em-lt); margin-bottom:16px; padding-bottom:11px; border-bottom:1px solid var(--gborder); display:flex; align-items:center; gap:8px; }
+    .tgl-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid rgba(16,185,129,.05); }
+    .tgl-label { font-size:13px; color:#8fbfa0; }
+    .tgl { width:38px; height:21px; border-radius:20px; background:rgba(16,185,129,.14); border:1px solid rgba(16,185,129,.22); position:relative; cursor:pointer; transition:background var(--tr); }
+    .tgl.on { background:var(--em); border-color:var(--em); }
+    .tgl::after { content:''; position:absolute; top:3px; left:3px; width:13px; height:13px; border-radius:50%; background:#fff; transition:transform var(--tr); }
+    .tgl.on::after { transform:translateX(17px); }
+
+    /* ─── UTILS ──────────────────────────────────── */
+    .info-pill { display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:20px; background:rgba(16,185,129,.07); border:1px solid rgba(16,185,129,.16); font-family:'Syne',sans-serif; font-size:11px; color:#5a9a6e; }
+    .text-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+    /* ══════════════════════════════════════════════
+       MOBILE BOTTOM NAV (≤ 640px)
+    ══════════════════════════════════════════════ */
+    .mobile-nav {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      height: calc(var(--mobile-nav) + var(--safe-b));
+      padding-bottom: var(--safe-b);
+      background: rgba(6,14,8,.97);
+      border-top: 1px solid var(--gborder);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 -6px 28px rgba(0,0,0,.5);
+    }
+    .mobile-nav-inner { display:flex; align-items:center; justify-content:space-around; height:var(--mobile-nav); padding:0 4px; }
+    .mnav-tab {
+      flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:4px; padding:6px 4px; border-radius:12px; cursor:pointer;
+      border:none; background:transparent; color:rgba(100,180,120,.38);
+      font-family:'Syne',sans-serif; transition:all .22s cubic-bezier(.4,0,.2,1);
+      touch-action:manipulation; position:relative;
+    }
+    .mnav-tab i { font-size:18px; transition:transform .22s; }
+    .mnav-tab span { font-size:9px; font-weight:700; letter-spacing:.3px; }
+    .mnav-tab:active { transform:scale(.9); }
+    .mnav-tab.active { color:var(--em); }
+    .mnav-tab.active i { transform:translateY(-2px); }
+    .mnav-tab.active::after { content:''; position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:18px; height:3px; background:var(--em); border-radius:2px; box-shadow:0 0 7px var(--em); }
+
+    /* ══════════════════════════════════════════════
+       MOBILE DRAWER (slide-up panel for sidebar)
+    ══════════════════════════════════════════════ */
+    .mobile-drawer {
+      display: none;
+      position: fixed; left:0; right:0; bottom:0; z-index:300;
+      background: linear-gradient(180deg, rgba(6,20,9,.99), rgba(8,28,12,.99));
+      border-top: 1px solid var(--gborder);
+      border-radius: 20px 20px 0 0;
+      max-height: 85dvh; overflow-y: auto; overflow-x: hidden;
+      transform: translateY(100%);
+      transition: transform .35s cubic-bezier(.32,1,.22,1);
+      box-shadow: 0 -18px 55px rgba(0,0,0,.7);
+    }
+    .mobile-drawer.open { transform: translateY(0); }
+    .mobile-drawer::-webkit-scrollbar { width: 3px; }
+    .mobile-drawer::-webkit-scrollbar-thumb { background: var(--g700); border-radius: 3px; }
+
+    .drawer-handle { display:flex; justify-content:center; padding:12px 0 5px; background:transparent; }
+    .drawer-handle::before { content:''; width:36px; height:4px; background:rgba(16,185,129,.28); border-radius:2px; }
+
+    .drawer-header { padding:4px 20px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--gborder); }
+    .drawer-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--em-lt); }
+    .drawer-close { width:30px; height:30px; border-radius:50%; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); color:rgba(200,200,160,.6); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+    .drawer-close:hover { background:rgba(200,50,50,.2); color:#ff5555; }
+
+    .drawer-nav { padding:12px 0 20px; }
+    .drawer-section-lbl { font-family:'Syne',sans-serif; font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#3d7a52; padding:12px 20px 5px; }
+    .drawer-nav-link { display:flex; align-items:center; gap:12px; padding:12px 20px; color:#8fbfa0; font-family:'Syne',sans-serif; font-size:14px; font-weight:500; transition:all .2s; cursor:pointer; border-radius:10px; margin:2px 10px; }
+    .drawer-nav-link:hover,.drawer-nav-link:active { background:rgba(16,185,129,.1); color:var(--em-lt); }
+    .drawer-nav-link.active { background:linear-gradient(90deg,rgba(16,185,129,.18),rgba(16,185,129,.04)); color:var(--em-lt); border:1px solid rgba(16,185,129,.2); }
+    .drawer-nav-link.danger { color:#fb7185; }
+    .drawer-nav-link i { font-size:18px; width:24px; text-align:center; }
+
+    /* drawer backdrop */
+    .drawer-backdrop { display:none; position:fixed; inset:0; z-index:250; background:rgba(0,0,0,.6); backdrop-filter:blur(3px); }
+    .drawer-backdrop.open { display:block; }
+
+    /* ══════════════════════════════════════════════
+       SIDEBAR OVERLAY (tablet)
+    ══════════════════════════════════════════════ */
+    .sb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:99; backdrop-filter:blur(2px); }
+
+    /* ══════════════════════════════════════════════
+       RESPONSIVE BREAKPOINTS
+    ══════════════════════════════════════════════ */
+
+    /* ── TABLET 641–1024px ── */
+    @media (max-width: 1024px) {
+      .app-shell {
+        grid-template-columns: var(--sidebar-col) 1fr;
+        grid-template-areas:
+          "sidebar topbar"
+          "sidebar content";
+      }
+      .app-shell.collapsed { grid-template-columns: var(--sidebar-col) 1fr; }
+      .sidebar { width: var(--sidebar-col); }
+      .brand-text,.nav-label,.sidebar-footer-text { opacity:0; width:0; pointer-events:none; overflow:hidden; }
+      .nav-section-label { opacity:0; }
+      .sb-overlay { display:block; opacity:0; pointer-events:none; transition:opacity .28s; }
+      .sb-overlay.active { opacity:1; pointer-events:auto; }
+      /* sidebar expands on hover for tablet */
+      .sidebar:hover { width: var(--sidebar-w); z-index:150; box-shadow:4px 0 30px rgba(0,0,0,.6); }
+      .sidebar:hover .brand-text,
+      .sidebar:hover .nav-label,
+      .sidebar:hover .sidebar-footer-text { opacity:1; width:auto; pointer-events:auto; }
+      .sidebar:hover .nav-section-label { opacity:1; }
+      .topbar-search { max-width:260px; }
+      .stat-grid { grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); }
+    }
+
+    /* ── MOBILE ≤ 640px ── */
+    @media (max-width: 640px) {
+      .app-shell { grid-template-columns: 1fr; grid-template-rows: var(--topbar-h) 1fr; grid-template-areas: "topbar" "content"; }
+      .sidebar { display:none; }
+      .sb-overlay { display:none !important; }
+      .topbar { padding: 0 14px; }
+      .topbar-search { display:none; }
+      .topbar-toggle { display:none; }
+      .admin-pill-name { display:none; }
+      .admin-pill { padding:5px 8px; }
+      .page-title { font-size:15px; }
+
+      .content-area {
+        padding: 14px 12px;
+        padding-bottom: calc(var(--mobile-nav) + var(--safe-b) + 16px);
+      }
+      .mobile-nav { display:flex; flex-direction:column; }
+      .mobile-drawer { display:block; }
+
+      .stat-grid { grid-template-columns: 1fr 1fr; gap:10px; }
+      .stat-value { font-size:24px; }
+      .stat-card { padding:16px 14px; }
+
+      .schemes-grid { grid-template-columns: 1fr; }
+      .fb-grid { grid-template-columns: 1fr; }
+      .settings-grid { grid-template-columns: 1fr; }
+
+      .sfg { grid-template-columns: 1fr; }
+      .sfg .col-full { grid-column: 1; }
+
+      .table-search input { width:150px; }
+      .tc-head { gap:8px; }
+
+      .section-title { font-size:17px; }
+      .section-header { flex-direction:column; align-items:flex-start; }
+    }
+
+    /* ── XS ≤ 380px ── */
+    @media (max-width:380px) {
+      .stat-grid { grid-template-columns: 1fr 1fr; gap:8px; }
+      .stat-value { font-size:22px; }
+      .stat-card { padding:14px 12px; }
+      .topbar-right { gap:5px; }
+    }
+
+    /* table responsive wrap */
+    @media (max-width:860px) {
+      .table-responsive-custom { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+      .custom-table thead th:nth-child(3),
+      .custom-table td:nth-child(3) { display:none; }
+    }
+    @media (max-width:640px) {
+      .custom-table thead th:nth-child(4),
+      .custom-table td:nth-child(4) { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar overlay (tablet) -->
+<div class="sb-overlay" id="sbOverlay" onclick="closeSbOverlay()"></div>
+<!-- Drawer backdrop (mobile) -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeMobileDrawer()"></div>
+
+<!-- ═══════════ APP SHELL ═══════════ -->
+<div class="app-shell" id="appShell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">🌾</div>
+      <div class="brand-text">
+        <span class="brand-name">Kishan Saathi AI</span>
+        <span class="brand-sub">Admin Panel</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <ul style="list-style:none;padding:0;margin:0;">
+        <li class="nav-item"><div class="nav-link active" id="link-dashboard" onclick="navigate('dashboard')"><i class="bi bi-grid-1x2-fill nav-icon"></i><span class="nav-label">Dashboard</span></div></li>
+        <li class="nav-item"><div class="nav-link" id="link-users" onclick="navigate('users')"><i class="bi bi-people-fill nav-icon"></i><span class="nav-label">Users</span></div></li>
+      </ul>
+      <div class="nav-section-label">Manage</div>
+      <ul style="list-style:none;padding:0;margin:0;">
+        <li class="nav-item"><div class="nav-link" id="link-schemes" onclick="navigate('schemes')"><i class="bi bi-bank2 nav-icon"></i><span class="nav-label">Govt Schemes</span></div></li>
+        <li class="nav-item"><div class="nav-link" id="link-feedback" onclick="navigate('feedback')"><i class="bi bi-star-fill nav-icon"></i><span class="nav-label">Feedback</span></div></li>
+        <li class="nav-item"><div class="nav-link" id="link-settings" onclick="navigate('settings')"><i class="bi bi-gear-fill nav-icon"></i><span class="nav-label">Settings</span></div></li>
+      </ul>
+      <div class="nav-section-label"></div>
+      <ul style="list-style:none;padding:0;margin:0;">
+        <li class="nav-item"><a class="nav-link danger" href="/logout"><i class="bi bi-box-arrow-left nav-icon"></i><span class="nav-label">Logout</span></a></li>
+      </ul>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-avatar">👤</div>
+      <div class="sidebar-footer-text">
+        <strong>Admin</strong>
+        <span>Super Admin</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="topbar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+    <div class="page-title" id="page-title-text">Dashboard</div>
+    <div class="topbar-search">
+      <i class="bi bi-search si"></i>
+      <input type="text" placeholder="Search…" id="global-search" oninput="globalSearch(this.value)" />
+    </div>
+    <div class="topbar-right">
+      <div class="tb-icon-btn" title="Notifications"><i class="bi bi-bell"></i><span class="bdot"></span></div>
+      <div class="tb-icon-btn" title="Refresh" onclick="location.reload()"><i class="bi bi-arrow-clockwise"></i></div>
+      <div class="admin-pill" id="adminPillBtn" onclick="toggleAdminMenu()">
+        <div class="admin-pill-av">👤</div>
+        <span class="admin-pill-name">Hey… Admin</span>
+        <i class="bi bi-chevron-down chev"></i>
+        <div class="admin-dropdown">
+          <a href="#"><i class="bi bi-person"></i> Profile</a>
+          <a href="#" onclick="navigate('settings')"><i class="bi bi-gear"></i> Settings</a>
+          <a href="/logout" class="red"><i class="bi bi-box-arrow-left"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main class="content-area" id="contentArea">
+
+    <!-- ══ DASHBOARD ══ -->
+    <section class="section active" id="sec-dashboard">
+      <div class="section-header">
+        <h2 class="section-title"><div class="title-icon">📊</div>Overview</h2>
+        <span class="info-pill"><i class="bi bi-circle-fill" style="font-size:7px;color:var(--em);"></i> Live Data</span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card glass sc-g"><div class="stat-icon"><i class="bi bi-people-fill"></i></div><div class="stat-label">Total Users</div><div class="stat-value">248</div><div class="stat-trend t-up"><i class="bi bi-arrow-up-short"></i> +12% this month</div><i class="bi bi-people-fill stat-bg-icon"></i></div>
+        <div class="stat-card glass sc-b"><div class="stat-icon"><i class="bi bi-flower2"></i></div><div class="stat-label">Predictions</div><div class="stat-value">1,843</div><div class="stat-trend t-up"><i class="bi bi-arrow-up-short"></i> +8% this week</div><i class="bi bi-flower2 stat-bg-icon"></i></div>
+        <div class="stat-card glass sc-a"><div class="stat-icon"><i class="bi bi-cloud-sun"></i></div><div class="stat-label">Weather Req.</div><div class="stat-value">5,291</div><div class="stat-trend t-up"><i class="bi bi-arrow-up-short"></i> +23% today</div><i class="bi bi-cloud-sun stat-bg-icon"></i></div>
+        <div class="stat-card glass sc-r"><div class="stat-icon"><i class="bi bi-chat-dots"></i></div><div class="stat-label">Chatbot Queries</div><div class="stat-value">3,172</div><div class="stat-trend t-dn"><i class="bi bi-arrow-down-short"></i> −3% this week</div><i class="bi bi-chat-dots stat-bg-icon"></i></div>
+        <div class="stat-card glass sc-p"><div class="stat-icon"><i class="bi bi-bug"></i></div><div class="stat-label">Disease Reports</div><div class="stat-value">624</div><div class="stat-trend t-up"><i class="bi bi-arrow-up-short"></i> +5% this month</div><i class="bi bi-bug stat-bg-icon"></i></div>
+        <div class="stat-card glass sc-c"><div class="stat-icon"><i class="bi bi-star"></i></div><div class="stat-label">Feedback Count</div><div class="stat-value">187</div><div class="stat-trend t-up"><i class="bi bi-arrow-up-short"></i> +18% this month</div><i class="bi bi-star stat-bg-icon"></i></div>
+      </div>
+    </section>
+
+    <!-- ══ USERS ══ -->
+    <section class="section" id="sec-users">
+      <div class="section-header">
+        <h2 class="section-title"><div class="title-icon">👥</div>User Management</h2>
+        <span class="info-pill"><i class="bi bi-people"></i> 248 users</span>
+      </div>
+      <div class="table-card glass">
+        <div class="tc-head">
+          <div class="table-search"><i class="bi bi-search si"></i><input type="text" placeholder="Search users…" oninput="filterTable(this,'users-tbody')" /></div>
+          <select class="filter-sel" onchange="filterByStatus(this.value)">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+        <div class="text-scroll">
+          <table class="custom-table">
+            <thead><tr><th>User</th><th>Location</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="users-tbody">
+              <tr><td><div class="user-cell"><div class="u-av">R</div><div><div class="u-name">Ramesh Kumar</div><div style="font-size:11px;color:#5a9a6e;">ramesh@email.com</div></div></div></td><td>Haryana</td><td>Jan 2025</td><td><span class="badge-s s-active">Active</span></td><td><button class="btn-act btn-edit"><i class="bi bi-pencil"></i></button><button class="btn-act btn-del"><i class="bi bi-trash"></i></button></td></tr>
+              <tr><td><div class="user-cell"><div class="u-av">S</div><div><div class="u-name">Sunita Devi</div><div style="font-size:11px;color:#5a9a6e;">sunita@email.com</div></div></div></td><td>Punjab</td><td>Feb 2025</td><td><span class="badge-s s-active">Active</span></td><td><button class="btn-act btn-edit"><i class="bi bi-pencil"></i></button><button class="btn-act btn-del"><i class="bi bi-trash"></i></button></td></tr>
+              <tr><td><div class="user-cell"><div class="u-av">P</div><div><div class="u-name">Priya Sharma</div><div style="font-size:11px;color:#5a9a6e;">priya@email.com</div></div></div></td><td>UP</td><td>Mar 2025</td><td><span class="badge-s s-pending">Pending</span></td><td><button class="btn-act btn-edit"><i class="bi bi-pencil"></i></button><button class="btn-act btn-del"><i class="bi bi-trash"></i></button></td></tr>
+              <tr><td><div class="user-cell"><div class="u-av">M</div><div><div class="u-name">Mohan Lal</div><div style="font-size:11px;color:#5a9a6e;">mohan@email.com</div></div></div></td><td>Rajasthan</td><td>Apr 2025</td><td><span class="badge-s s-inactive">Inactive</span></td><td><button class="btn-act btn-edit"><i class="bi bi-pencil"></i></button><button class="btn-act btn-del"><i class="bi bi-trash"></i></button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pg-row">
+          <div class="pg-btn active">1</div><div class="pg-btn">2</div><div class="pg-btn">3</div><div class="pg-btn"><i class="bi bi-chevron-right"></i></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ FEEDBACK ══ -->
+    <section class="section" id="sec-feedback">
+      <div class="section-header">
+        <h2 class="section-title"><div class="title-icon">⭐</div>Feedback</h2>
+        <div class="info-pill">6 reviews</div>
+      </div>
+      <div class="fb-grid">
+        <div class="fb-card glass"><div class="fb-head"><div class="fb-av">R</div><div><div class="fb-name">Ramesh Kumar</div><div class="fb-date">25 Apr 2025</div></div></div><div class="fb-stars">★★★★★</div><div class="fb-text">This app has completely transformed how I plan my crops. The AI recommendations are spot on and have increased my yield by 30%!</div><div class="fb-acts"><button class="btn-respond"><i class="bi bi-reply"></i> Respond</button><button class="btn-dlt"><i class="bi bi-trash"></i> Delete</button></div></div>
+        <div class="fb-card glass"><div class="fb-head"><div class="fb-av">S</div><div><div class="fb-name">Sunita Devi</div><div class="fb-date">22 Apr 2025</div></div></div><div class="fb-stars">★★★★☆</div><div class="fb-text">Very helpful for disease detection. Identified the blight in my tomato field early. Would be great if it supported more regional languages.</div><div class="fb-acts"><button class="btn-respond"><i class="bi bi-reply"></i> Respond</button><button class="btn-dlt"><i class="bi bi-trash"></i> Delete</button></div></div>
+        <div class="fb-card glass"><div class="fb-head"><div class="fb-av">P</div><div><div class="fb-name">Priya Sharma</div><div class="fb-date">10 Apr 2025</div></div></div><div class="fb-stars">★★★★★</div><div class="fb-text">Excellent! The govt schemes section helped me get a subsidy I didn't even know existed. Every farmer should use this app.</div><div class="fb-acts"><button class="btn-respond"><i class="bi bi-reply"></i> Respond</button><button class="btn-dlt"><i class="bi bi-trash"></i> Delete</button></div></div>
+      </div>
+    </section>
+
+    <!-- ══ GOVT SCHEMES ══ -->
+    <section class="section" id="sec-schemes">
+      <div class="section-header">
+        <h2 class="section-title"><div class="title-icon">🏛</div>Govt Schemes</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="info-pill"><i class="bi bi-bank2"></i> <span id="schemes-total-count">0</span> schemes</div>
+          <button class="btn-primary" id="scroll-to-form-btn"><i class="bi bi-plus-lg"></i> Add Scheme</button>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="scheme-form-card glass" id="scheme-form-card">
+        <div class="form-card-title">
+          <div class="form-title-icon"><i class="bi bi-plus-circle-fill"></i></div>
+          <span id="form-title-text">Add New Scheme</span>
+        </div>
+        <div class="sfg">
+          <div>
+            <label class="form-lbl">Scheme Title <span style="color:#fb7185;">*</span></label>
+            <input type="text" id="f-title" class="inp" placeholder="e.g. PM Kisan Samman Nidhi" />
+          </div>
+          <div>
+            <label class="form-lbl">Official Website URL</label>
+            <input type="url" id="f-link" class="inp" placeholder="https://pmkisan.gov.in" />
+          </div>
+          <div class="col-full">
+            <label class="form-lbl">Description <span style="color:#fb7185;">*</span></label>
+            <textarea id="f-desc" class="inp" rows="3" placeholder="Brief overview of what this scheme offers…"></textarea>
+          </div>
+          <div class="col-full">
+            <label class="form-lbl">Eligibility Criteria</label>
+            <textarea id="f-elig" class="inp" rows="2" placeholder="e.g. All landholding farmers…"></textarea>
+          </div>
+          <div class="col-full">
+            <label class="form-lbl">Select Icon</label>
+            <div class="emoji-row" id="emoji-row">
+              <button class="emoji-btn selected" data-emoji="🌾">🌾</button>
+              <button class="emoji-btn" data-emoji="🚜">🚜</button>
+              <button class="emoji-btn" data-emoji="💰">💰</button>
+              <button class="emoji-btn" data-emoji="🏛">🏛</button>
+              <button class="emoji-btn" data-emoji="🛡">🛡</button>
+              <button class="emoji-btn" data-emoji="🌱">🌱</button>
+              <button class="emoji-btn" data-emoji="💧">💧</button>
+              <button class="emoji-btn" data-emoji="🏦">🏦</button>
+              <button class="emoji-btn" data-emoji="📋">📋</button>
+              <button class="emoji-btn" data-emoji="🌞">🌞</button>
+              <button class="emoji-btn" data-emoji="🌻">🌻</button>
+              <button class="emoji-btn" data-emoji="🌽">🌽</button>
+            </div>
+            <div class="icon-preview" id="icon-preview-bubble">🌾</div>
+          </div>
+          <div>
+            <label class="form-lbl">Category <span style="color:#fb7185;">*</span></label>
+            <div class="tag-grp" id="category-group">
+              <div class="tag-tgl" data-cat="central">🏛 Central</div>
+              <div class="tag-tgl" data-cat="state">🗺 State</div>
+              <div class="tag-tgl" data-cat="subsidy">💰 Subsidy</div>
+              <div class="tag-tgl" data-cat="loan">🏦 Loan</div>
+              <div class="tag-tgl" data-cat="insurance">🛡 Insurance</div>
+            </div>
+          </div>
+          <div>
+            <label class="form-lbl">Highlight Badge</label>
+            <div class="tag-grp" id="badge-group">
+              <div class="tag-tgl selected" data-badge="None">None</div>
+              <div class="tag-tgl" data-badge="New">🆕 New</div>
+              <div class="tag-tgl" data-badge="Popular">🔥 Popular</div>
+            </div>
+          </div>
+          <div class="col-full">
+            <label class="form-lbl">Key Benefits <span style="font-size:10px;text-transform:none;letter-spacing:0;color:#3d7a52;">(up to 5)</span></label>
+            <div id="benefits-builder">
+              <div class="benefit-row">
+                <input type="text" class="inp benefit-input" placeholder="e.g. ₹6,000 annual income support" />
+                <button class="btn-rm"><i class="bi bi-x"></i></button>
+              </div>
+            </div>
+            <button class="btn-add-ben" id="add-benefit-btn"><i class="bi bi-plus-circle"></i> Add Benefit</button>
+          </div>
+        </div>
+        <div class="form-acts">
+          <button class="btn-primary" id="submit-btn"><i class="bi bi-check-lg"></i><span id="submit-btn-text">Save Scheme</span></button>
+          <button class="btn-reset-f" id="reset-btn"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+          <div class="form-success" id="form-success-msg"><i class="bi bi-check-circle-fill" style="color:var(--em);font-size:15px;"></i> Scheme saved!</div>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="table-card glass" style="padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:8px;">
+          <h5 style="font-family:'Syne',sans-serif;color:var(--em-lt);margin:0;display:flex;align-items:center;gap:8px;"><i class="bi bi-grid-3x3-gap" style="color:var(--em);"></i> All Schemes</h5>
+          <div class="info-pill"><i class="bi bi-bank2"></i> <span id="visible-count">0</span> showing</div>
+        </div>
+        <div class="schemes-grid" id="schemes-grid">
+          <div class="schemes-loading"><div class="spinner"></div><span>Loading schemes…</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ SETTINGS ══ -->
+    <section class="section" id="sec-settings">
+      <div class="section-header"><h2 class="section-title"><div class="title-icon">⚙️</div>Settings</h2></div>
+      <div class="settings-grid">
+        <div class="settings-group glass">
+          <div class="sg-title"><i class="bi bi-bell"></i> Notifications</div>
+          <div class="tgl-row"><span class="tgl-label">Email alerts on new user</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="tgl-row"><span class="tgl-label">Disease report alerts</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="tgl-row"><span class="tgl-label">Feedback notifications</span><div class="tgl" onclick="this.classList.toggle('on')"></div></div>
+          <div class="tgl-row"><span class="tgl-label">Weekly analytics digest</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+        </div>
+        <div class="settings-group glass">
+          <div class="sg-title"><i class="bi bi-shield-check"></i> Security</div>
+          <div class="tgl-row"><span class="tgl-label">Two-factor authentication</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="tgl-row"><span class="tgl-label">Session timeout (30 min)</span><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+          <div class="tgl-row"><span class="tgl-label">Log all admin actions</span><div class="tgl" onclick="this.classList.toggle('on')"></div></div>
+          <div class="tgl-row"><span class="tgl-label">IP whitelist mode</span><div class="tgl" onclick="this.classList.toggle('on')"></div></div>
+        </div>
+        <div class="settings-group glass">
+          <div class="sg-title"><i class="bi bi-database"></i> Data Management</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button class="btn-primary" style="justify-content:center;"><i class="bi bi-download"></i> Export Users CSV</button>
+            <button class="btn-primary" style="justify-content:center;"><i class="bi bi-download"></i> Export Predictions</button>
+            <button class="btn-primary" style="background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:#fb7185;box-shadow:none;justify-content:center;"><i class="bi bi-trash"></i> Clear Old Logs</button>
+          </div>
+        </div>
+        <div class="settings-group glass">
+          <div class="sg-title"><i class="bi bi-person-gear"></i> Admin Profile</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div><label class="form-lbl">Display Name</label><input type="text" class="inp" value="Admin" /></div>
+            <div><label class="form-lbl">Email</label><input type="email" class="inp" value="admin@kishansathai.in" /></div>
+            <button class="btn-primary" style="justify-content:center;"><i class="bi bi-check2"></i> Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- /content-area -->
+</div><!-- /app-shell -->
+
+<!-- ══ MOBILE BOTTOM NAV ══ -->
+<nav class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav-inner">
+    <button class="mnav-tab active" id="mnav-dashboard" onclick="mobileNav('dashboard')"><i class="bi bi-grid-1x2-fill"></i><span>Home</span></button>
+    <button class="mnav-tab" id="mnav-users"     onclick="mobileNav('users')"><i class="bi bi-people-fill"></i><span>Users</span></button>
+    <button class="mnav-tab" id="mnav-schemes"   onclick="mobileNav('schemes')"><i class="bi bi-bank2"></i><span>Schemes</span></button>
+    <button class="mnav-tab" id="mnav-feedback"  onclick="mobileNav('feedback')"><i class="bi bi-star-fill"></i><span>Feedback</span></button>
+    <button class="mnav-tab" id="mnav-more"      onclick="openMobileDrawer()"><i class="bi bi-grid-3x3-gap-fill"></i><span>More</span></button>
+  </div>
+</nav>
+
+<!-- ══ MOBILE DRAWER ══ -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <div class="drawer-title">Menu</div>
+    <button class="drawer-close" onclick="closeMobileDrawer()"><i class="bi bi-x"></i></button>
+  </div>
+  <div class="drawer-nav">
+    <div class="drawer-section-lbl">Navigate</div>
+    <div class="drawer-nav-link active" id="dlnk-dashboard" onclick="mobileDrawerNav('dashboard')"><i class="bi bi-grid-1x2-fill"></i> Dashboard</div>
+    <div class="drawer-nav-link" id="dlnk-users"    onclick="mobileDrawerNav('users')"><i class="bi bi-people-fill"></i> Users</div>
+    <div class="drawer-nav-link" id="dlnk-schemes"  onclick="mobileDrawerNav('schemes')"><i class="bi bi-bank2"></i> Govt Schemes</div>
+    <div class="drawer-nav-link" id="dlnk-feedback" onclick="mobileDrawerNav('feedback')"><i class="bi bi-star-fill"></i> Feedback</div>
+    <div class="drawer-nav-link" id="dlnk-settings" onclick="mobileDrawerNav('settings')"><i class="bi bi-gear-fill"></i> Settings</div>
+    <div class="drawer-section-lbl"></div>
+    <a href="/logout" class="drawer-nav-link danger"><i class="bi bi-box-arrow-left"></i> Logout</a>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════ */
+const pageTitles = {
+  dashboard:'Dashboard', users:'Users',
+  schemes:'Govt Schemes', feedback:'Feedback', settings:'Settings'
+};
+
+function navigate(page) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  const sec  = document.getElementById('sec-' + page);
+  const link = document.getElementById('link-' + page);
+  if (sec)  sec.classList.add('active');
+  if (link) link.classList.add('active');
+  document.getElementById('page-title-text').textContent = pageTitles[page] || 'Admin';
+  // scroll content to top
+  document.getElementById('contentArea').scrollTop = 0;
+  // sync drawer links
+  document.querySelectorAll('.drawer-nav-link[id^="dlnk-"]').forEach(l => l.classList.remove('active'));
+  const dlnk = document.getElementById('dlnk-' + page);
+  if (dlnk) dlnk.classList.add('active');
+}
+
+/* mobile bottom nav */
+function mobileNav(page) {
+  navigate(page);
+  document.querySelectorAll('.mnav-tab').forEach(t => t.classList.remove('active'));
+  const tab = document.getElementById('mnav-' + page);
+  if (tab) tab.classList.add('active');
+}
+
+/* mobile drawer nav */
+function mobileDrawerNav(page) {
+  navigate(page);
+  document.querySelectorAll('.mnav-tab').forEach(t => t.classList.remove('active'));
+  const tab = document.getElementById('mnav-' + page);
+  if (tab) tab.classList.add('active');
+  closeMobileDrawer();
+}
+
+/* ══════════════════════════════════════════
+   SIDEBAR (desktop collapse / tablet hover)
+══════════════════════════════════════════ */
+let sidebarCollapsed = false;
+function toggleSidebar() {
+  if (window.innerWidth <= 640) return;
+  if (window.innerWidth <= 1024) {
+    // tablet: push sidebar open fully over content
+    const sb = document.getElementById('sidebar');
+    sb.classList.toggle('sb-open');
+    if (sb.classList.contains('sb-open')) {
+      sb.style.width = 'var(--sidebar-w)';
+      sb.style.zIndex = '150';
+      sb.style.position = 'fixed'; sb.style.top = '0'; sb.style.bottom = '0'; sb.style.left = '0';
+      document.getElementById('sbOverlay').classList.add('active');
+      // show text
+      sb.querySelectorAll('.brand-text,.nav-label,.sidebar-footer-text,.nav-section-label').forEach(el => {
+        el.style.opacity = '1'; el.style.width = 'auto'; el.style.pointerEvents = 'auto';
+      });
+    } else {
+      closeSbOverlay();
+    }
+    return;
+  }
+  // desktop
+  sidebarCollapsed = !sidebarCollapsed;
+  document.getElementById('appShell').classList.toggle('collapsed', sidebarCollapsed);
+}
+
+function closeSbOverlay() {
+  const sb = document.getElementById('sidebar');
+  sb.classList.remove('sb-open');
+  sb.style.width = ''; sb.style.zIndex = ''; sb.style.position = '';
+  sb.style.top = ''; sb.style.bottom = ''; sb.style.left = '';
+  document.getElementById('sbOverlay').classList.remove('active');
+  sb.querySelectorAll('.brand-text,.nav-label,.sidebar-footer-text,.nav-section-label').forEach(el => {
+    el.style.opacity = ''; el.style.width = ''; el.style.pointerEvents = '';
+  });
+}
+
+/* ══════════════════════════════════════════
+   MOBILE DRAWER
+══════════════════════════════════════════ */
+function openMobileDrawer() {
+  document.getElementById('mobileDrawer').classList.add('open');
+  document.getElementById('drawerBackdrop').classList.add('open');
+  document.querySelectorAll('.mnav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('mnav-more').classList.add('active');
+}
+function closeMobileDrawer() {
+  document.getElementById('mobileDrawer').classList.remove('open');
+  document.getElementById('drawerBackdrop').classList.remove('open');
+}
+
+/* Admin dropdown */
+function toggleAdminMenu() { document.getElementById('adminPillBtn').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const btn = document.getElementById('adminPillBtn');
+  if (btn && !btn.contains(e.target)) btn.classList.remove('open');
+});
+
+/* ══════════════════════════════════════════
+   TABLE HELPERS
+══════════════════════════════════════════ */
+function filterTable(input, tbodyId) {
+  const val = input.value.toLowerCase();
+  document.getElementById(tbodyId).querySelectorAll('tr').forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(val) ? '' : 'none';
+  });
+}
+function filterByStatus(val) {
+  document.getElementById('users-tbody').querySelectorAll('tr').forEach(r => {
+    r.style.display = (val === 'all' || r.textContent.toLowerCase().includes(val)) ? '' : 'none';
+  });
+}
+function globalSearch(val) {
+  const tbody = document.getElementById('users-tbody');
+  if (!tbody) return;
+  tbody.querySelectorAll('tr').forEach(r => {
+    r.style.display = (!val || r.textContent.toLowerCase().includes(val.toLowerCase())) ? '' : 'none';
+  });
+}
+
+/* ══════════════════════════════════════════
+   GOVT SCHEMES STATE
+══════════════════════════════════════════ */
+let selectedEmoji = '🌾';
+let selectedCats  = [];
+let selectedBadge = 'None';
+let editingId     = null;
+let allSchemes    = [];
+
+document.getElementById('scroll-to-form-btn').addEventListener('click', () => {
+  document.getElementById('scheme-form-card').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+/* Emoji picker */
+document.querySelectorAll('.emoji-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedEmoji = btn.dataset.emoji;
+    document.getElementById('icon-preview-bubble').textContent = selectedEmoji;
+  });
+});
+
+/* Category toggle */
+document.querySelectorAll('[data-cat]').forEach(tag => {
+  tag.addEventListener('click', () => {
+    tag.classList.toggle('selected');
+    const cat = tag.dataset.cat;
+    if (selectedCats.includes(cat)) selectedCats = selectedCats.filter(c => c !== cat);
+    else selectedCats.push(cat);
+  });
+});
+
+/* Badge toggle */
+document.querySelectorAll('[data-badge]').forEach(tag => {
+  tag.addEventListener('click', () => {
+    document.querySelectorAll('[data-badge]').forEach(t => t.classList.remove('selected'));
+    tag.classList.add('selected');
+    selectedBadge = tag.dataset.badge;
+  });
+});
+
+/* Benefits builder */
+document.getElementById('add-benefit-btn').addEventListener('click', () => {
+  const builder = document.getElementById('benefits-builder');
+  if (builder.querySelectorAll('.benefit-row').length >= 5) return;
+  const row = document.createElement('div');
+  row.className = 'benefit-row';
+  row.innerHTML = `<input type="text" class="inp benefit-input" placeholder="e.g. Additional benefit…" /><button class="btn-rm"><i class="bi bi-x"></i></button>`;
+  builder.appendChild(row);
+});
+
+document.addEventListener('click', e => {
+  if (e.target.closest('.btn-rm')) {
+    const builder = document.getElementById('benefits-builder');
+    const row = e.target.closest('.benefit-row');
+    if (builder.querySelectorAll('.benefit-row').length > 1) row.remove();
+    else row.querySelector('.benefit-input').value = '';
+  }
+});
+
+/* ══════════════════════════════════════════
+   SUBMIT
+══════════════════════════════════════════ */
+document.getElementById('submit-btn').addEventListener('click', submitScheme);
+
+async function submitScheme() {
+  const title    = document.getElementById('f-title').value.trim();
+  const link     = document.getElementById('f-link').value.trim();
+  const desc     = document.getElementById('f-desc').value.trim();
+  const elig     = document.getElementById('f-elig').value.trim();
+  const benefits = Array.from(document.querySelectorAll('.benefit-input')).map(i=>i.value.trim()).filter(Boolean);
+  if (!title) { alert('Please enter a scheme title.'); return; }
+  if (selectedCats.length === 0) { alert('Please select at least one category.'); return; }
+  if (!desc)  { alert('Please add a description.'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  document.getElementById('submit-btn-text').textContent = 'Saving…';
+
+  try {
+    const url    = editingId ? `/api/schemes/update/${editingId}` : '/api/schemes/add';
+    const method = editingId ? 'PUT' : 'POST';
+    const res    = await fetch(url, {
+      method, headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({title, icon:selectedEmoji, link, description:desc, eligibility:elig, benefits, categories:selectedCats, badge:selectedBadge})
+    });
+    const data = JSON.parse(await res.text());
+    if (data.success) { showSuccessFlash(); resetForm(); await loadSchemes(); }
+    else alert('Error: ' + (data.message || 'Could not save'));
+  } catch(err) { alert('Network error: ' + err.message); }
+  finally {
+    btn.disabled = false;
+    document.getElementById('submit-btn-text').textContent = editingId ? 'Update Scheme' : 'Save Scheme';
+  }
+}
+
+/* Reset */
+document.getElementById('reset-btn').addEventListener('click', resetForm);
+function resetForm() {
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-link').value  = '';
+  document.getElementById('f-desc').value  = '';
+  document.getElementById('f-elig').value  = '';
+  selectedEmoji = '🌾';
+  document.getElementById('icon-preview-bubble').textContent = '🌾';
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('selected', b.dataset.emoji === '🌾'));
+  selectedCats = [];
+  document.querySelectorAll('[data-cat]').forEach(t => t.classList.remove('selected'));
+  selectedBadge = 'None';
+  document.querySelectorAll('[data-badge]').forEach(b => b.classList.toggle('selected', b.dataset.badge === 'None'));
+  document.getElementById('benefits-builder').innerHTML = `<div class="benefit-row"><input type="text" class="inp benefit-input" placeholder="e.g. ₹6,000 annual income support" /><button class="btn-rm"><i class="bi bi-x"></i></button></div>`;
+  editingId = null;
+  document.getElementById('form-title-text').textContent = 'Add New Scheme';
+  document.getElementById('submit-btn-text').textContent  = 'Save Scheme';
+}
+
+/* ══════════════════════════════════════════
+   LOAD SCHEMES
+══════════════════════════════════════════ */
+async function loadSchemes() {
+  const grid = document.getElementById('schemes-grid');
+  grid.innerHTML = '<div class="schemes-loading"><div class="spinner"></div><span>Loading…</span></div>';
+  try {
+    const res  = await fetch('/api/schemes');
+    allSchemes = await res.json();
+    renderSchemes();
+  } catch {
+    grid.innerHTML = '<div class="schemes-empty"><i class="bi bi-exclamation-triangle"></i><p>Failed to load schemes.</p></div>';
+  }
+}
+
+function renderSchemes() {
+  const grid = document.getElementById('schemes-grid');
+  grid.innerHTML = '';
+  const total = allSchemes.length;
+  document.getElementById('schemes-total-count').textContent = total;
+  document.getElementById('visible-count').textContent = total;
+
+  if (!total) {
+    grid.innerHTML = '<div class="schemes-empty"><i class="bi bi-bank2"></i><p>No schemes yet. Click <strong>Add Scheme</strong> to get started.</p></div>';
+    return;
+  }
+
+  allSchemes.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'scheme-card glass';
+    const catIcons  = {central:'🏛',state:'🗺',subsidy:'💰',loan:'🏦',insurance:'🛡'};
+    const catLabels = {central:'Central',state:'State',subsidy:'Subsidy',loan:'Loan',insurance:'Insurance'};
+    let badgeTag = '';
+    if (s.badge === 'New')     badgeTag = `<span class="tag tag-new">🆕 New</span>`;
+    if (s.badge === 'Popular') badgeTag = `<span class="tag tag-popular">🔥 Popular</span>`;
+    const catTags    = (s.categories||[]).map(c=>`<span class="tag tag-${c}">${catIcons[c]||''} ${catLabels[c]||c}</span>`).join('');
+    const bensHTML   = s.benefits&&s.benefits.length ? `<div class="sc-ben-title">Key Benefits</div>${s.benefits.map(b=>`<div class="sc-ben-item"><i class="bi bi-check-circle-fill"></i> ${esc(b)}</div>`).join('')}` : '';
+    const eligHTML   = s.eligibility ? `<div class="sc-elig"><i class="bi bi-person-check-fill"></i> ${esc(s.eligibility)}</div>` : '';
+    const visitBtn   = s.link ? `<a href="${esc(s.link)}" target="_blank" class="btn-visit"><i class="bi bi-box-arrow-up-right"></i> Visit</a>` : `<span style="font-size:11px;color:#3d7a52;font-family:'Syne',sans-serif;">No link</span>`;
+
+    card.innerHTML = `
+      <div class="sc-bar"></div>
+      <div class="sc-body">
+        <div class="sc-tags">${badgeTag}${catTags}</div>
+        <div class="sc-icon-title">
+          <div class="sc-ico">${s.icon||'🌾'}</div>
+          <div class="sc-name">${esc(s.title)}</div>
+        </div>
+        <div class="sc-desc">${esc(s.description)}</div>
+        ${bensHTML}${eligHTML}
+      </div>
+      <div class="sc-foot">
+        ${visitBtn}
+        <div class="sc-card-acts">
+          <button class="btn-cedit"><i class="bi bi-pencil"></i></button>
+          <button class="btn-cdel"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>`;
+
+    card.querySelector('.btn-cedit').addEventListener('click', () => editScheme(s.id));
+    card.querySelector('.btn-cdel').addEventListener('click',  () => deleteScheme(s.id, card));
+    grid.appendChild(card);
+  });
+}
+
+function editScheme(id) {
+  const s = allSchemes.find(x => x.id === id);
+  if (!s) return;
+  editingId = id;
+  document.getElementById('f-title').value = s.title||'';
+  document.getElementById('f-link').value  = s.link||'';
+  document.getElementById('f-desc').value  = s.description||'';
+  document.getElementById('f-elig').value  = s.eligibility||'';
+  selectedEmoji = s.icon||'🌾';
+  document.getElementById('icon-preview-bubble').textContent = selectedEmoji;
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('selected', b.dataset.emoji === selectedEmoji));
+  selectedCats  = s.categories||[];
+  document.querySelectorAll('[data-cat]').forEach(t => t.classList.toggle('selected', selectedCats.includes(t.dataset.cat)));
+  selectedBadge = s.badge||'None';
+  document.querySelectorAll('[data-badge]').forEach(b => b.classList.toggle('selected', b.dataset.badge === selectedBadge));
+  const builder = document.getElementById('benefits-builder');
+  builder.innerHTML = '';
+  (s.benefits&&s.benefits.length ? s.benefits : ['']).forEach(txt => {
+    const row = document.createElement('div');
+    row.className = 'benefit-row';
+    row.innerHTML = `<input type="text" class="inp benefit-input" value="${esc(txt)}" placeholder="e.g. A key benefit…" /><button class="btn-rm"><i class="bi bi-x"></i></button>`;
+    builder.appendChild(row);
+  });
+  document.getElementById('form-title-text').textContent = 'Edit Scheme';
+  document.getElementById('submit-btn-text').textContent  = 'Update Scheme';
+  document.getElementById('scheme-form-card').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function deleteScheme(id, card) {
+  if (!confirm('Delete this scheme? Cannot be undone.')) return;
+  card.style.opacity = '0.4'; card.style.pointerEvents = 'none';
+  try {
+    const res  = await fetch(`/api/schemes/delete/${id}`,{method:'DELETE',headers:{'Content-Type':'application/json'}});
+    const data = JSON.parse(await res.text());
+    if (data.success) {
+      card.remove();
+      allSchemes = allSchemes.filter(s => s.id !== id);
+      document.getElementById('schemes-total-count').textContent = allSchemes.length;
+      document.getElementById('visible-count').textContent = document.querySelectorAll('#schemes-grid .scheme-card').length;
+    } else {
+      card.style.opacity=''; card.style.pointerEvents='';
+      alert('Delete failed: ' + (data.message||'Unknown error'));
+    }
+  } catch(err) {
+    card.style.opacity=''; card.style.pointerEvents='';
+    alert('Network error: ' + err.message);
+  }
+}
+
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showSuccessFlash() {
+  const el = document.getElementById('form-success-msg');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', loadSchemes);
+</script>
+</body>
+</html>

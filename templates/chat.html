@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Kishan Saathi</title>
+  <link rel="icon" type="image/png" href="/static/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --soil:        #1e1208;
+      --leaf:        #2e6025;
+      --lime:        #7ab648;
+      --wheat:       #c8a84b;
+      --gold:        #e8c96a;
+      --cream:       #f5eed8;
+      --sidebar-w:   280px;
+      --topbar-h:    56px;
+      --mobile-nav:  64px;
+      --safe-top:    env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--soil);
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── Background ── */
+    .app-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 100%, rgba(46,96,37,.45) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80%   0%, rgba(200,168,75,.18) 0%, transparent 55%),
+        linear-gradient(160deg, #0d1a0a 0%, #1e2d12 40%, #1a1208 100%);
+    }
+    .app-bg::after {
+      content:''; position:absolute; inset:0; pointer-events:none; opacity:.45;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    /* ── Particles ── */
+    .particle {
+      position:fixed; pointer-events:none; z-index:1;
+      font-size:16px; opacity:0;
+      animation:drift linear infinite;
+    }
+    @keyframes drift {
+      0%{opacity:0;transform:translateY(100vh) rotate(0deg)}
+      10%{opacity:.25} 90%{opacity:.15}
+      100%{opacity:0;transform:translateY(-10vh) rotate(360deg)}
+    }
+
+    /* ══════════════════════════════════════════
+       APP SHELL
+    ══════════════════════════════════════════ */
+    .app-shell {
+      position:relative; z-index:2;
+      display:grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      height:100dvh; width:100vw;
+      overflow:hidden;
+    }
+
+    /* ══════════════════════════════════════════
+       SIDEBAR
+    ══════════════════════════════════════════ */
+    .sidebar {
+      background:rgba(15,24,8,.94);
+      backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+      border-right:1px solid rgba(122,182,72,.18);
+      display:flex; flex-direction:column;
+      overflow-y:auto; overflow-x:hidden;
+      transition:transform .3s cubic-bezier(.4,0,.2,1);
+      z-index:10; will-change:transform;
+    }
+    .sidebar::-webkit-scrollbar{width:3px}
+    .sidebar::-webkit-scrollbar-thumb{background:rgba(122,182,72,.2);border-radius:3px}
+
+    .sidebar-header{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+    .logo-mark{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+    .logo-icon{
+      width:40px;height:40px;border-radius:11px;font-size:20px;flex-shrink:0;
+      background:linear-gradient(135deg,var(--leaf),var(--lime));
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 4px 16px rgba(74,140,63,.4)
+    }
+    .logo-text h1{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--cream);line-height:1.1}
+    .logo-text span{font-size:10px;font-weight:500;color:var(--lime);letter-spacing:2px;text-transform:uppercase}
+    .tagline{font-size:11px;color:rgba(200,200,160,.35);margin-top:3px}
+
+    .season-strip{display:flex;gap:4px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+    .season-pill{
+      flex:1;text-align:center;padding:7px 2px;
+      border-radius:20px;font-size:8px;font-weight:700;
+      letter-spacing:.5px;text-transform:uppercase;
+      cursor:pointer;border:1px solid transparent;
+      color:rgba(200,200,160,.4);transition:all .28s;touch-action:manipulation
+    }
+    .season-pill .s-icon{display:block;font-size:12px;margin-bottom:2px}
+    .season-pill:hover{color:var(--cream);background:rgba(255,255,255,.05)}
+    .season-pill[data-season="winter"].active{background:rgba(130,190,240,.18);border-color:rgba(140,200,255,.5);color:#aaddff}
+    .season-pill[data-season="rabi"].active  {background:rgba(200,168,75,.18); border-color:rgba(220,185,80,.55);color:var(--gold)}
+    .season-pill[data-season="kharif"].active{background:rgba(74,140,63,.22);  border-color:rgba(122,182,72,.5); color:var(--lime)}
+    .season-pill[data-season="zaid"].active  {background:rgba(220,120,40,.18); border-color:rgba(240,150,60,.5); color:#ffaa55}
+
+    .sidebar-section{padding:11px 14px 0;flex-shrink:0}
+    .section-label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:rgba(200,200,160,.3);font-weight:600;margin-bottom:8px}
+    .field-card{
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+      border-radius:11px;padding:9px 11px;margin-bottom:6px;
+      display:flex;align-items:center;gap:9px;
+      cursor:pointer;transition:all .22s;touch-action:manipulation
+    }
+    .field-card:hover,.field-card:active{background:rgba(74,140,63,.12);border-color:rgba(122,182,72,.25);transform:translateX(3px)}
+    .field-icon{width:30px;height:30px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+    .field-icon.crop  {background:rgba(200,168,75,.15)}
+    .field-icon.pest  {background:rgba(74,140,63,.18)}
+    .field-icon.water {background:rgba(183,216,236,.15)}
+    .field-icon.scheme{background:rgba(200,168,75,.2)}
+    .field-icon.insure{background:rgba(255,80,80,.2)}
+    .field-info h4{font-size:11.5px;font-weight:600;color:var(--cream);margin-bottom:1px}
+    .field-info p{font-size:9.5px;color:rgba(200,200,160,.5)}
+
+    .quick-prompts{padding:11px 14px;flex-shrink:0}
+    #qp-chips{display:flex;flex-wrap:wrap;gap:5px}
+    .qp-chip{
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);
+      border-radius:100px;padding:5px 10px;
+      font-size:10px;color:rgba(200,200,160,.6);
+      cursor:pointer;transition:all .2s;
+      animation:chipIn .3s ease both;touch-action:manipulation
+    }
+    @keyframes chipIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+    .qp-chip:hover,.qp-chip:active{background:rgba(74,140,63,.18);border-color:rgba(122,182,72,.35);color:var(--lime)}
+
+    .weather-widget{
+      margin-top:auto;padding:12px 14px;
+      background:rgba(183,216,236,.05);
+      border-top:1px solid rgba(255,255,255,.05);flex-shrink:0
+    }
+    .weather-row{display:flex;align-items:center;justify-content:space-between}
+    .weather-temp{font-size:22px;font-weight:300;color:var(--cream);font-family:'Playfair Display',serif}
+    .weather-icon{font-size:24px}
+    .weather-label{font-size:10px;color:rgba(200,200,160,.4);margin-top:2px}
+    .weather-stats{display:flex;gap:12px;margin-top:6px}
+    .ws-item{display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(200,200,160,.5)}
+    .ws-item i{color:var(--lime);font-size:9px}
+
+    /* ══════════════════════════════════════════
+       MAIN CHAT
+    ══════════════════════════════════════════ */
+    .chat-main{display:flex;flex-direction:column;height:100dvh;overflow:hidden;min-width:0}
+
+    .topbar{
+      height:var(--topbar-h);
+      padding:0 clamp(12px,3vw,24px);
+      padding-top:var(--safe-top);
+      display:flex;align-items:center;justify-content:space-between;
+      background:rgba(10,18,6,.72);
+      backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+      border-bottom:1px solid rgba(255,255,255,.06);
+      flex-shrink:0;gap:8px
+    }
+    .topbar-left {display:flex;align-items:center;gap:9px;min-width:0}
+    .topbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+    .hamburger{
+      display:none;
+      width:38px;height:38px;border-radius:10px;
+      border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.05);
+      color:rgba(200,200,160,.7);font-size:15px;
+      cursor:pointer;align-items:center;justify-content:center;
+      transition:all .2s;flex-shrink:0;touch-action:manipulation
+    }
+    .hamburger:hover,.hamburger:active{background:rgba(74,140,63,.2);color:var(--lime)}
+
+    .status-dot{
+      width:8px;height:8px;border-radius:50%;flex-shrink:0;
+      background:var(--lime);box-shadow:0 0 8px var(--lime);
+      animation:blink 2s ease-in-out infinite
+    }
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+    .status-label{font-size:clamp(11px,1.5vw,12px);color:rgba(200,200,160,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .lang-wrap{position:relative}
+    .lang-btn{
+      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+      color:var(--cream);padding:7px 12px;border-radius:100px;
+      cursor:pointer;font-family:'DM Sans',sans-serif;
+      font-size:clamp(11px,1.5vw,12px);font-weight:500;
+      display:flex;align-items:center;gap:5px;
+      transition:all .2s;white-space:nowrap;touch-action:manipulation
+    }
+    .lang-btn:hover{background:rgba(74,140,63,.2);border-color:rgba(122,182,72,.4)}
+    .lang-btn .chevron{transition:transform .2s;font-size:9px;opacity:.6}
+    .lang-btn.open .chevron{transform:rotate(180deg)}
+    .lang-menu{
+      display:none;position:absolute;right:0;top:calc(100% + 6px);
+      background:#111e0a;border:1px solid rgba(122,182,72,.22);
+      border-radius:14px;width:180px;overflow:hidden;
+      box-shadow:0 20px 50px rgba(0,0,0,.7);z-index:9999;
+      max-height:260px;overflow-y:auto
+    }
+    .lang-menu::-webkit-scrollbar{width:3px}
+    .lang-menu::-webkit-scrollbar-thumb{background:rgba(122,182,72,.2);border-radius:3px}
+    .lang-item{
+      padding:10px 14px;font-size:12px;color:rgba(200,200,160,.7);
+      cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+      transition:all .15s;border-bottom:1px solid rgba(255,255,255,.04);
+      touch-action:manipulation
+    }
+    .lang-item:last-child{border-bottom:none}
+    .lang-item:hover{background:rgba(74,140,63,.18);color:var(--cream)}
+    .lang-item.active{color:var(--lime);font-weight:600}
+    .lang-item .check{color:var(--lime)}
+
+    .icon-btn{
+      width:36px;height:36px;border-radius:10px;border:none;
+      background:rgba(255,255,255,.05);color:rgba(200,200,160,.6);
+      cursor:pointer;display:flex;align-items:center;justify-content:center;
+      font-size:15px;transition:all .2s;flex-shrink:0;touch-action:manipulation
+    }
+    .icon-btn:hover{background:rgba(74,140,63,.2);color:var(--lime)}
+
+    #chatbox{
+      flex:1;overflow-y:auto;overflow-x:hidden;
+      padding:clamp(14px,3vw,24px) clamp(12px,4vw,28px);
+      display:flex;flex-direction:column;
+      gap:clamp(12px,2vw,16px);
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:thin;scrollbar-color:rgba(122,182,72,.2) transparent;
+      overscroll-behavior:contain
+    }
+    #chatbox::-webkit-scrollbar{width:4px}
+    #chatbox::-webkit-scrollbar-thumb{background:rgba(122,182,72,.25);border-radius:4px}
+
+    .welcome-card{
+      background:linear-gradient(135deg,rgba(46,96,37,.22),rgba(200,168,75,.1));
+      border:1px solid rgba(122,182,72,.18);border-radius:18px;
+      padding:clamp(18px,4vw,26px) clamp(18px,4vw,28px);
+      text-align:center;animation:fadeUp .5s ease forwards
+    }
+    .welcome-card h2{font-family:'Playfair Display',serif;font-size:clamp(18px,3vw,22px);color:var(--cream);margin-bottom:7px}
+    .welcome-card p{font-size:clamp(12px,1.8vw,13px);color:rgba(200,200,160,.6);line-height:1.65}
+
+    .msg-row{display:flex;gap:9px;align-items:flex-end;animation:fadeUp .32s ease forwards}
+    .msg-row.user{flex-direction:row-reverse}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    .avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+    .avatar.ai  {background:linear-gradient(135deg,#1f4037,#99f2c8);box-shadow:0 0 10px rgba(153,242,200,.5)}
+    .avatar.user{background:linear-gradient(135deg,#4facfe,#00f2fe);box-shadow:0 0 10px rgba(0,242,254,.4)}
+
+    .bubble{
+      max-width:min(70%,480px);
+      padding:10px 14px;border-radius:16px;
+      line-height:1.65;font-size:clamp(12.5px,1.8vw,13.5px)
+    }
+    .bubble.ai  {background:rgba(30,45,18,.85);border:1px solid rgba(122,182,72,.18);color:var(--cream);border-bottom-left-radius:4px}
+    .bubble.user{background:linear-gradient(135deg,rgba(46,96,37,.65),rgba(74,140,63,.5));border:1px solid rgba(122,182,72,.28);color:var(--cream);border-bottom-right-radius:4px}
+    .bubble-time{font-size:10px;color:rgba(200,200,160,.28);margin-top:3px}
+
+    .typing-bubble{
+      background:rgba(30,45,18,.85);border:1px solid rgba(122,182,72,.18);
+      border-radius:16px;border-bottom-left-radius:4px;
+      padding:12px 15px;display:flex;gap:5px;align-items:center
+    }
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--lime);opacity:.4;animation:bounce 1.2s ease-in-out infinite}
+    .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+    @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-6px);opacity:1}}
+
+    .bubble b,.bubble strong{color:var(--gold);font-weight:600}
+    .bubble em{color:var(--lime);font-style:italic}
+    .bubble ul{padding-left:18px;margin-top:6px}
+    .bubble ul li{margin-bottom:4px}
+    .bubble a{color:var(--lime);text-decoration:underline}
+
+    .input-area{
+      padding:clamp(8px,2vw,14px) clamp(10px,3vw,24px);
+      padding-bottom:calc(clamp(10px,2vw,18px) + var(--safe-bottom));
+      background:rgba(8,14,5,.82);
+      backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+      border-top:1px solid rgba(255,255,255,.05);flex-shrink:0
+    }
+    .input-row{display:flex;gap:8px;align-items:center}
+    .input-wrap{flex:1;min-width:0}
+    #message{
+      width:100%;height:clamp(44px,6vw,50px);
+      padding:0 clamp(12px,2vw,18px);
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:13px;color:var(--cream);
+      font-family:'DM Sans',sans-serif;font-size:clamp(13px,2vw,14px);
+      outline:none;transition:all .2s;-webkit-appearance:none
+    }
+    #message::placeholder{color:rgba(200,200,160,.3)}
+    #message:focus{border-color:rgba(122,182,72,.5);background:rgba(46,96,37,.1)}
+
+    .send-btn{
+      width:clamp(44px,6vw,50px);height:clamp(44px,6vw,50px);
+      border-radius:13px;border:none;
+      background:linear-gradient(135deg,var(--leaf),var(--lime));
+      color:#fff;font-size:15px;cursor:pointer;flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 4px 16px rgba(74,140,63,.4);
+      transition:all .2s;touch-action:manipulation
+    }
+    .send-btn:hover {transform:scale(1.06);box-shadow:0 6px 22px rgba(74,140,63,.55)}
+    .send-btn:active{transform:scale(.95)}
+
+    .mic-btn{
+      width:clamp(44px,6vw,50px);height:clamp(44px,6vw,50px);
+      border-radius:13px;border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.06);color:rgba(200,200,160,.7);
+      font-size:17px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      transition:all .2s;flex-shrink:0;touch-action:manipulation
+    }
+    .mic-btn:hover{background:rgba(74,140,63,.2);border-color:rgba(122,182,72,.35);color:var(--lime)}
+    .mic-btn.mic-active{
+      background:rgba(122,182,72,.2);
+      border-color:rgba(122,182,72,.6);
+      color:var(--lime);
+      animation:micPulse 1s ease-in-out infinite
+    }
+    @keyframes micPulse{
+      0%,100%{box-shadow:0 0 0 0 rgba(122,182,72,.4)}
+      50%{box-shadow:0 0 0 8px rgba(122,182,72,.0)}
+    }
+
+    .home-btn{
+      height:clamp(44px,6vw,50px);padding:0 16px;border-radius:13px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.04);color:rgba(200,200,160,.5);
+      font-family:'DM Sans',sans-serif;font-size:13px;
+      cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;touch-action:manipulation
+    }
+    .home-btn:hover{background:rgba(200,168,75,.1);border-color:rgba(200,168,75,.28);color:var(--wheat)}
+    .home-btn a{text-decoration:none;color:inherit;display:flex;align-items:center;gap:6px}
+    .input-hint{font-size:10px;color:rgba(200,200,160,.2);margin-top:7px;text-align:center}
+
+    /* ══════════════════════════════════════════
+       VOICE OVERLAY — ORB IMAGE VERSION
+    ══════════════════════════════════════════ */
+    #voiceOverlay {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      visibility: hidden; opacity: 0;
+      transition: opacity .4s ease, visibility .4s ease;
+      padding: 20px;
+      /* dark blurred backdrop */
+      background: radial-gradient(ellipse at center, rgba(10,25,8,.82) 0%, rgba(0,0,0,.72) 100%);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    }
+    #voiceOverlay.active { visibility: visible; opacity: 1; }
+
+    /* Orb container */
+    .orb-stage {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      width: clamp(200px,40vw,260px);
+      height: clamp(200px,40vw,260px);
+    }
+
+    /* Expanding glow rings */
+    .orb-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1.5px solid rgba(122,182,72,.5);
+      animation: orbRingExpand 2s ease-out infinite;
+      pointer-events: none;
+    }
+    .orb-ring:nth-child(1){
+      width: 100%; height: 100%;
+      border-color: rgba(122,182,72,.55);
+      animation-delay: 0s;
+    }
+    .orb-ring:nth-child(2){
+      width: 120%; height: 120%;
+      border-color: rgba(122,182,72,.35);
+      animation-delay: .5s;
+    }
+    .orb-ring:nth-child(3){
+      width: 145%; height: 145%;
+      border-color: rgba(122,182,72,.18);
+      animation-delay: 1s;
+    }
+    .orb-ring:nth-child(4){
+      width: 175%; height: 175%;
+      border-color: rgba(122,182,72,.08);
+      animation-delay: 1.5s;
+    }
+    @keyframes orbRingExpand {
+      0%   { transform: scale(.7); opacity: 1; }
+      100% { transform: scale(1.15); opacity: 0; }
+    }
+
+    /* Glow blob behind orb */
+    .orb-glow {
+      position: absolute;
+      width: 75%; height: 75%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(122,182,72,.35) 0%, rgba(46,96,37,.18) 50%, transparent 75%);
+      filter: blur(22px);
+      animation: orbGlowPulse 1.6s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    @keyframes orbGlowPulse {
+      from { transform: scale(.85); opacity: .6; }
+      to   { transform: scale(1.15); opacity: 1; }
+    }
+
+    /* The orb image itself */
+    .orb-img {
+      position: relative; z-index: 2;
+      width: 78%; height: 78%;
+      object-fit: contain;
+      border-radius: 50%;
+      animation: orbFloat 2.4s ease-in-out infinite, orbBreath 1.4s ease-in-out infinite alternate;
+      filter: drop-shadow(0 0 28px rgba(122,182,72,.7)) drop-shadow(0 0 56px rgba(74,140,63,.45));
+    }
+    @keyframes orbFloat {
+      0%,100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-12px) scale(1.04); }
+    }
+    @keyframes orbBreath {
+      from { filter: drop-shadow(0 0 18px rgba(122,182,72,.5)) drop-shadow(0 0 40px rgba(74,140,63,.3)); }
+      to   { filter: drop-shadow(0 0 38px rgba(122,182,72,.95)) drop-shadow(0 0 75px rgba(74,140,63,.65)); }
+    }
+
+    /* Audio-reactive bars — driven by JS via CSS vars */
+    .orb-bars {
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px; margin-top: 28px; height: 44px;
+    }
+    .orb-bar {
+      width: 4px; border-radius: 4px;
+      background: linear-gradient(180deg, var(--lime), rgba(122,182,72,.3));
+      transform-origin: bottom center;
+      animation: orbBarIdle 1s ease-in-out infinite alternate;
+      transition: height .08s ease;
+    }
+    .orb-bar:nth-child(1){ height:8px;  animation-delay: .00s }
+    .orb-bar:nth-child(2){ height:14px; animation-delay: .10s }
+    .orb-bar:nth-child(3){ height:22px; animation-delay: .05s }
+    .orb-bar:nth-child(4){ height:30px; animation-delay: .15s }
+    .orb-bar:nth-child(5){ height:38px; animation-delay: .08s }
+    .orb-bar:nth-child(6){ height:44px; animation-delay: .20s }
+    .orb-bar:nth-child(7){ height:38px; animation-delay: .12s }
+    .orb-bar:nth-child(8){ height:30px; animation-delay: .18s }
+    .orb-bar:nth-child(9){ height:22px; animation-delay: .06s }
+    .orb-bar:nth-child(10){height:14px; animation-delay: .14s }
+    .orb-bar:nth-child(11){height:8px;  animation-delay: .22s }
+    @keyframes orbBarIdle {
+      from { transform: scaleY(.35); opacity: .45; }
+      to   { transform: scaleY(1);   opacity: 1; }
+    }
+    /* Live class makes bars react to real audio levels */
+    .orb-bars.live .orb-bar { animation: none; }
+
+    /* Labels */
+    .orb-label-wrap { margin-top: 22px; text-align: center; }
+    .orb-label {
+      font-size: clamp(13px,2vw,16px); font-weight: 700;
+      color: var(--lime); letter-spacing: 3px; text-transform: uppercase;
+      animation: labelFade 2s ease-in-out infinite alternate;
+    }
+    @keyframes labelFade { from{opacity:.6} to{opacity:1} }
+    .orb-sublabel {
+      margin-top: 5px; font-size: clamp(10px,1.4vw,12px);
+      color: rgba(200,200,160,.38); letter-spacing: 1px;
+    }
+
+    /* Transcript preview */
+    .orb-transcript {
+      margin-top: 14px; max-width: 320px; text-align: center;
+      font-size: 13px; color: rgba(200,255,160,.7);
+      min-height: 20px; font-style: italic;
+      transition: opacity .3s;
+    }
+
+    /* Close / cancel button */
+    .orb-cancel {
+      margin-top: 30px;
+      padding: 10px 28px; border-radius: 100px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      color: rgba(200,200,160,.55); font-size: 12px;
+      cursor: pointer; letter-spacing: 1px;
+      font-family: 'DM Sans', sans-serif;
+      transition: all .2s; touch-action: manipulation;
+    }
+    .orb-cancel:hover { background: rgba(200,50,50,.2); border-color: rgba(255,80,80,.35); color: #ff7777; }
+
+    /* Sidebar backdrop */
+    .sidebar-backdrop{
+      display:none;position:fixed;inset:0;z-index:9;
+      background:rgba(0,0,0,.55);backdrop-filter:blur(2px)
+    }
+    .sidebar-backdrop.open{display:block}
+
+    /* ══════════════════════════════════════════
+       MOBILE BOTTOM NAV BAR
+    ══════════════════════════════════════════ */
+    .mobile-nav {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      height: calc(var(--mobile-nav) + var(--safe-bottom));
+      padding-bottom: var(--safe-bottom);
+      background: rgba(10,18,6,.96);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(122,182,72,.15);
+      box-shadow: 0 -8px 32px rgba(0,0,0,.5);
+    }
+    .mobile-nav-inner {
+      display: flex; align-items: center; justify-content: space-around;
+      height: var(--mobile-nav); padding: 0 4px;
+    }
+    .nav-tab {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 4px;
+      padding: 8px 4px; border-radius: 12px; cursor: pointer;
+      border: none; background: transparent;
+      color: rgba(200,200,160,.38); font-family: 'DM Sans', sans-serif;
+      transition: all .22s cubic-bezier(.4,0,.2,1); touch-action: manipulation;
+      position: relative;
+    }
+    .nav-tab i { font-size: 19px; transition: transform .22s; }
+    .nav-tab span { font-size: 9.5px; font-weight: 600; letter-spacing: .3px; }
+    .nav-tab:active { transform: scale(.92); }
+    .nav-tab.active { color: var(--lime); }
+    .nav-tab.active i { transform: translateY(-2px); }
+    .nav-tab.active::after {
+      content: ''; position: absolute; bottom: 2px; left: 50%;
+      transform: translateX(-50%); width: 20px; height: 3px;
+      background: var(--lime); border-radius: 2px; box-shadow: 0 0 8px var(--lime);
+    }
+    .nav-tab.nav-chat { flex: 0 0 60px; }
+    .nav-tab.nav-chat i {
+      width: 46px; height: 46px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--leaf), var(--lime));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #fff;
+      box-shadow: 0 4px 18px rgba(74,140,63,.5);
+      margin-bottom: 0; transition: transform .22s, box-shadow .22s;
+    }
+    .nav-tab.nav-chat span { display: none; }
+    .nav-tab.nav-chat.active i { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(74,140,63,.7); }
+    .nav-tab.nav-chat.active::after { display: none; }
+    .nav-tab.nav-chat:active i { transform: scale(.92); }
+
+    /* SLIDE-UP DRAWER */
+    .mobile-drawer {
+      display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+      background: #0c1a08; border-top: 1px solid rgba(122,182,72,.2);
+      border-radius: 22px 22px 0 0; max-height: 88dvh;
+      overflow-y: auto; overflow-x: hidden;
+      transform: translateY(100%);
+      transition: transform .35s cubic-bezier(.32,1,.22,1);
+      box-shadow: 0 -20px 60px rgba(0,0,0,.7);
+    }
+    .mobile-drawer.open { transform: translateY(0); }
+    .mobile-drawer::-webkit-scrollbar { width: 3px; }
+    .mobile-drawer::-webkit-scrollbar-thumb { background: rgba(122,182,72,.2); border-radius: 3px; }
+
+    .drawer-handle {
+      display: flex; justify-content: center;
+      padding: 12px 0 4px; position: sticky; top: 0; z-index: 1; background: #0c1a08;
+    }
+    .drawer-handle::before {
+      content: ''; width: 38px; height: 4px; background: rgba(122,182,72,.3); border-radius: 2px;
+    }
+    .drawer-header {
+      padding: 4px 20px 16px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 28px; z-index: 1; background: #0c1a08;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .drawer-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--cream); }
+    .drawer-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      color: rgba(200,200,160,.6); font-size: 13px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      touch-action: manipulation; transition: all .2s;
+    }
+    .drawer-close:hover { background: rgba(200,50,50,.2); color: #ff5555; }
+    .drawer-body { padding: 16px 20px 20px; }
+    .drawer-season-strip { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 20px; }
+    .drawer-season-pill {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 10px 6px 8px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.07); background: rgba(255,255,255,.03);
+      cursor: pointer; transition: all .25s; touch-action: manipulation;
+    }
+    .drawer-season-pill .ds-icon { font-size: 20px; margin-bottom: 5px; }
+    .drawer-season-pill .ds-name { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: rgba(200,200,160,.45); }
+    .drawer-season-pill:active { transform: scale(.95); }
+    .drawer-season-pill[data-season="winter"].active { background: rgba(130,190,240,.18); border-color: rgba(140,200,255,.45); }
+    .drawer-season-pill[data-season="winter"].active .ds-name { color: #aaddff; }
+    .drawer-season-pill[data-season="rabi"].active   { background: rgba(200,168,75,.18);  border-color: rgba(220,185,80,.45); }
+    .drawer-season-pill[data-season="rabi"].active   .ds-name { color: var(--gold); }
+    .drawer-season-pill[data-season="kharif"].active { background: rgba(74,140,63,.22);   border-color: rgba(122,182,72,.45); }
+    .drawer-season-pill[data-season="kharif"].active .ds-name { color: var(--lime); }
+    .drawer-season-pill[data-season="zaid"].active   { background: rgba(220,120,40,.18);  border-color: rgba(240,150,60,.45); }
+    .drawer-season-pill[data-season="zaid"].active   .ds-name { color: #ffaa55; }
+    .drawer-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.8px; color: rgba(200,200,160,.3); margin-bottom: 10px; margin-top: 18px; }
+    .drawer-section-title:first-child { margin-top: 0; }
+    .drawer-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .drawer-card {
+      background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+      border-radius: 14px; padding: 13px 12px; cursor: pointer; transition: all .22s;
+      touch-action: manipulation; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    }
+    .drawer-card:active { background: rgba(74,140,63,.15); border-color: rgba(122,182,72,.3); transform: scale(.97); }
+    .drawer-card-icon { font-size: 22px; }
+    .drawer-card-label { font-size: 12px; font-weight: 600; color: var(--cream); line-height: 1.3; }
+    .drawer-card-sub { font-size: 10px; color: rgba(200,200,160,.45); }
+    .drawer-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .drawer-chip {
+      background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 100px; padding: 7px 13px;
+      font-size: 11px; color: rgba(200,200,160,.65);
+      cursor: pointer; transition: all .2s; touch-action: manipulation;
+    }
+    .drawer-chip:active { background: rgba(74,140,63,.2); border-color: rgba(122,182,72,.4); color: var(--lime); }
+    .drawer-lang-item {
+      padding: 12px 16px; font-size: 13px; color: rgba(200,200,160,.7);
+      cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+      transition: all .15s; border-bottom: 1px solid rgba(255,255,255,.04);
+      touch-action: manipulation; border-radius: 10px; margin-bottom: 4px;
+    }
+    .drawer-lang-item:last-child { border-bottom: none; }
+    .drawer-lang-item:active { background: rgba(74,140,63,.18); color: var(--cream); }
+    .drawer-lang-item.active { color: var(--lime); font-weight: 600; }
+    .drawer-lang-item .check { color: var(--lime); }
+
+    .drawer-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 150;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(3px);
+    }
+    .drawer-backdrop.open { display: block; }
+
+    /* ══ TABLET ══ */
+    @media (max-width: 900px) {
+      :root { --sidebar-w: 270px; }
+      .app-shell { grid-template-columns: 1fr; }
+      .sidebar {
+        position:fixed;left:0;top:0;bottom:0; width:var(--sidebar-w);
+        transform:translateX(-100%); box-shadow:6px 0 40px rgba(0,0,0,.6);
+        padding-top:var(--safe-top)
+      }
+      .sidebar.open { transform: translateX(0); }
+      .hamburger { display: flex; }
+      .home-btn   { display: none; }
+      .bubble     { max-width: 80%; }
+    }
+
+    /* ══ MOBILE ══ */
+    @media (max-width: 600px) {
+      .hamburger { display: none !important; }
+      .mobile-nav    { display: flex; flex-direction: column; }
+      .mobile-drawer { display: block; }
+      #chatbox { padding: 12px; padding-bottom: calc(var(--mobile-nav) + var(--safe-bottom) + 12px); }
+      .input-area { padding: 8px 12px; padding-bottom: calc(var(--mobile-nav) + var(--safe-bottom) + 4px); }
+      .status-label { display: none; }
+      .bubble { max-width: 88%; font-size: 13px; padding: 10px 12px; }
+      .welcome-card { padding: 16px; border-radius: 14px; }
+      .welcome-card h2 { font-size: 17px; }
+      .input-hint { display: none; }
+      .lang-btn .lang-name { display: none; }
+      .lang-btn { padding: 7px 9px; gap: 0; }
+      .icon-btn { width: 34px; height: 34px; font-size: 13px; }
+      .lang-menu { right: auto; left: 0; }
+      .orb-stage { width: clamp(160px,55vw,220px); height: clamp(160px,55vw,220px); }
+    }
+
+    @media (max-width: 380px) {
+      .drawer-cards-grid { grid-template-columns: 1fr 1fr; }
+      .drawer-season-strip { gap: 6px; }
+      .drawer-season-pill { padding: 9px 4px 7px; }
+    }
+    @media (min-width: 1280px) { :root { --sidebar-w: 300px; } }
+    @media (max-height: 500px) and (max-width: 900px) {
+      .welcome-card p  { display: none; }
+      .welcome-card h2 { font-size: 15px; }
+      .input-hint      { display: none; }
+    }
+
+    button { -webkit-appearance: none; }
+    .send-btn:focus-visible,.mic-btn:focus-visible,.hamburger:focus-visible,#message:focus-visible {
+      outline: 2px solid var(--lime); outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-bg"></div>
+
+<!-- Particles -->
+<div class="particle" id="p1" style="left:8%;animation-duration:22s;animation-delay:0s;">🌿</div>
+<div class="particle" id="p2" style="left:22%;animation-duration:28s;animation-delay:4s;">🌾</div>
+<div class="particle" id="p3" style="left:55%;animation-duration:19s;animation-delay:7s;">🍃</div>
+<div class="particle" id="p4" style="left:88%;animation-duration:31s;animation-delay:10s;">🌾</div>
+
+<!-- ══════════════════════════════════════════
+     VOICE OVERLAY — ORB IMAGE + REALTIME AUDIO
+══════════════════════════════════════════ -->
+<div id="voiceOverlay">
+  <div class="orb-stage">
+    <!-- Pulsing rings -->
+    <div class="orb-ring"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-ring"></div>
+    <div class="orb-ring"></div>
+    <!-- Glow -->
+    <div class="orb-glow"></div>
+    <!-- The orb image -->
+    <img class="orb-img" src="/static/orb_no_bg.webp" alt="Listening orb" draggable="false"/>
+  </div>
+
+  <!-- Audio waveform bars (11 bars for symmetry) -->
+  <div class="orb-bars" id="orbBars">
+    <div class="orb-bar"></div><div class="orb-bar"></div><div class="orb-bar"></div>
+    <div class="orb-bar"></div><div class="orb-bar"></div><div class="orb-bar"></div>
+    <div class="orb-bar"></div><div class="orb-bar"></div><div class="orb-bar"></div>
+    <div class="orb-bar"></div><div class="orb-bar"></div>
+  </div>
+
+  <!-- Labels -->
+  <div class="orb-label-wrap">
+    <div class="orb-label" id="orbLabel">Listening…</div>
+    <div class="orb-sublabel">Speak in any language</div>
+  </div>
+
+  <!-- Live transcript preview -->
+  <div class="orb-transcript" id="orbTranscript"></div>
+
+  <!-- Cancel button -->
+  <button class="orb-cancel" id="orbCancel">✕ &nbsp;Cancel</button>
+</div>
+
+<!-- Sidebar backdrop (tablet) -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- Drawer backdrop (mobile) -->
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+<!-- ═══════════════ APP SHELL ═══════════════ -->
+<div class="app-shell">
+
+  <!-- ════ SIDEBAR ════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-mark">
+        <div class="logo-icon">🌱</div>
+        <div class="logo-text"><h1>AgroAI</h1><span>Kisan Mitra</span></div>
+      </div>
+      <p class="tagline">Your field. Your questions. Answered.</p>
+    </div>
+    <div class="season-strip">
+      <div class="season-pill" data-season="winter" onclick="selectSeason(this)"><span class="s-icon">❄️</span>Winter</div>
+      <div class="season-pill active" data-season="rabi" onclick="selectSeason(this)"><span class="s-icon">🌾</span>Rabi</div>
+      <div class="season-pill" data-season="kharif" onclick="selectSeason(this)"><span class="s-icon">🌧️</span>Kharif</div>
+      <div class="season-pill" data-season="zaid" onclick="selectSeason(this)"><span class="s-icon">☀️</span>Zaid</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="section-label">Field Overview</div>
+      <div class="field-card" onclick="quickAndCloseSidebar('What crop should I plant this season?')">
+        <div class="field-icon crop">🌱</div>
+        <div class="field-info"><h4>Crop Advice</h4><p>Season-based guidance</p></div>
+      </div>
+      <div class="field-card" onclick="quickAndCloseSidebar('How do I treat yellowing leaves on my wheat crop?')">
+        <div class="field-icon pest">🪲</div>
+        <div class="field-info"><h4>Pest &amp; Disease</h4><p>Identify &amp; treat problems</p></div>
+      </div>
+      <div class="field-card" onclick="quickAndCloseSidebar('What are the best irrigation practices for my region?')">
+        <div class="field-icon water">💧</div>
+        <div class="field-info"><h4>Irrigation</h4><p>Water management tips</p></div>
+      </div>
+    </div>
+    <div class="quick-prompts">
+      <div class="section-label">Quick Ask</div>
+      <div id="qp-chips"></div>
+    </div>
+    <div class="sidebar-section" style="padding-bottom:12px;">
+      <div class="section-label">Support</div>
+      <div class="field-card" onclick="quickAndCloseSidebar('What government schemes and subsidies are available for farmers in 2024-25?')">
+        <div class="field-icon scheme">🏛️</div>
+        <div class="field-info"><h4>Govt Schemes</h4><p>Subsidies &amp; benefits</p></div>
+      </div>
+      <div class="field-card" onclick="quickAndCloseSidebar('Explain Pradhan Mantri Fasal Bima Yojana and how to claim crop insurance.')">
+        <div class="field-icon insure">🛡️</div>
+        <div class="field-info"><h4>Insurance Help</h4><p>Claim &amp; coverage</p></div>
+      </div>
+    </div>
+    <div class="weather-widget">
+      <div class="weather-row">
+        <div>
+          <div class="weather-temp" id="wTemp">--°C</div>
+          <div class="weather-label" id="wLabel">Fetching weather…</div>
+        </div>
+        <div class="weather-icon" id="wIcon">🌤️</div>
+      </div>
+      <div class="weather-stats">
+        <div class="ws-item"><i class="fa fa-tint"></i> <span id="wHumidity">--%</span></div>
+        <div class="ws-item"><i class="fa fa-wind"></i> <span id="wWind">-- km/h</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ════ MAIN CHAT ════ -->
+  <main class="chat-main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Open menu"><i class="fa fa-bars"></i></button>
+        <div class="status-dot"></div>
+        <span class="status-label" id="statusLabel">AI active · Rabi Season 2024–25</span>
+      </div>
+      <div class="topbar-right">
+        <div class="lang-wrap">
+          <button class="lang-btn" id="langToggle">
+            🌐 <span class="lang-name">English</span>
+            <i class="fa fa-chevron-down chevron"></i>
+          </button>
+          <div class="lang-menu" id="langMenu"></div>
+        </div>
+        <button class="icon-btn" id="speaker" title="Read last AI response"><i class="fa fa-volume-up"></i></button>
+      </div>
+    </div>
+
+    <div id="chatbox">
+      <div class="welcome-card">
+        <h2>🌾 Namaste, Kisan!</h2>
+        <p>Ask me anything about crops, pests, soil, irrigation,<br/>government schemes, or market prices — in any language.</p>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-row">
+        <button class="mic-btn" id="mic" aria-label="Voice input"><i class="fa fa-microphone"></i></button>
+        <div class="input-wrap">
+          <input type="text" id="message" placeholder="Ask about crops, diseases, soil, schemes…" autocomplete="off" enterkeyhint="send"/>
+        </div>
+        <button class="send-btn" id="send" aria-label="Send"><i class="fa fa-paper-plane"></i></button>
+        <button class="home-btn"><a href="{{ url_for('home') }}"><i class="fa fa-home"></i> Home</a></button>
+      </div>
+      <div class="input-hint">Press Enter to send · Tap mic to speak · 🔊 plays last reply</div>
+    </div>
+  </main>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav-inner">
+    <button class="nav-tab nav-chat active" id="navChat" onclick="showMobileTab('chat')" aria-label="Chat">
+      <i class="fa fa-seedling"></i>
+    </button>
+    <button class="nav-tab" id="navSchemes" onclick="showMobileTab('schemes')" aria-label="Schemes">
+      <i class="fa fa-landmark"></i><span>Schemes</span>
+    </button>
+    <button class="nav-tab" id="navMenu" onclick="openMobileDrawer('menu')" aria-label="Menu">
+      <i class="fa fa-th-large"></i><span>Menu</span>
+    </button>
+    <button class="nav-tab" id="navLang" onclick="openMobileDrawer('lang')" aria-label="Language">
+      <i class="fa fa-globe"></i><span>Language</span>
+    </button>
+    <button class="nav-tab" id="navHome" aria-label="Home">
+      <a href="{{ url_for('home') }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;color:inherit;">
+        <i class="fa fa-home"></i><span>Home</span>
+      </a>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE SLIDE-UP DRAWER -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawerTitle">Menu</div>
+    <button class="drawer-close" onclick="closeMobileDrawer()"><i class="fa fa-times"></i></button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<script>
+/* ══ State ══ */
+let selectedLang  = "en-IN";
+let langMap       = {};
+let currentSeason = "rabi";
+let currentAudio  = null;
+
+/* ══ Audio analyser for realtime bars ══ */
+let audioCtx      = null;
+let analyser      = null;
+let micStream     = null;
+let animFrameId   = null;
+let activeRecog   = null;
+
+/* ══ Season data ══ */
+const seasonData = {
+  winter: {
+    label: "AI active · Winter Season",
+    chips: [
+      {icon:"🥕",text:"Winter veggies",q:"What vegetables should I grow in winter?"},
+      {icon:"❄️",text:"Frost protect",  q:"How to protect crops from frost damage?"},
+      {icon:"🧥",text:"Cold storage",   q:"What are the best cold storage practices?"},
+      {icon:"🌱",text:"Winter sowing",  q:"What should I sow in winter season?"},
+      {icon:"💊",text:"Crop nutrition", q:"Which fertilizers work best in winter?"},
+      {icon:"🏛",text:"Subsidies",      q:"Government schemes for winter farming 2024"}
+    ]
+  },
+  rabi: {
+    label: "AI active · Rabi Season 2024–25",
+    chips: [
+      {icon:"🌾",text:"Fertilizer",   q:"Which fertilizer is best for paddy?"},
+      {icon:"🏛",text:"Gov schemes",  q:"Government schemes for farmers 2024"},
+      {icon:"🧪",text:"Soil test",    q:"How to do soil testing and where?"},
+      {icon:"📈",text:"Mandi prices", q:"Current mandi prices for wheat"},
+      {icon:"🌻",text:"Sowing time",  q:"When should I sow mustard?"},
+      {icon:"🍀",text:"Organic tips", q:"Organic farming tips for rabi crops"}
+    ]
+  },
+  kharif: {
+    label: "AI active · Kharif Season 2024",
+    chips: [
+      {icon:"🌧️",text:"Monsoon crops", q:"Best crops to grow in kharif season?"},
+      {icon:"🌾",text:"Paddy guide",   q:"How to cultivate paddy in kharif?"},
+      {icon:"🪲",text:"Kharif pests",  q:"Common pests in kharif and how to control?"},
+      {icon:"💧",text:"Flood mgmt",   q:"How to protect fields from waterlogging?"},
+      {icon:"🧪",text:"Soil prep",    q:"How to prepare soil before kharif sowing?"},
+      {icon:"📈",text:"Kharif prices",q:"Current mandi prices for kharif crops"}
+    ]
+  },
+  zaid: {
+    label: "AI active · Zaid Season 2025",
+    chips: [
+      {icon:"☀️",text:"Summer crops",  q:"Best crops for zaid summer season?"},
+      {icon:"🍉",text:"Watermelon",    q:"How to grow watermelon in summer?"},
+      {icon:"💧",text:"Drip irrig.",   q:"How to set up drip irrigation for summer?"},
+      {icon:"🌡️",text:"Heat stress",  q:"How to protect crops from heat stress?"},
+      {icon:"🥒",text:"Cucumber",     q:"Best practices for growing cucumber in zaid?"},
+      {icon:"🌿",text:"Organic",      q:"Organic farming tips for summer season"}
+    ]
+  }
+};
+
+const seasonIcons = {rabi:"🌾 Rabi Season",kharif:"🌧️ Kharif Season",zaid:"☀️ Zaid Season",winter:"❄️ Winter Season"};
+
+function getCurrentSeason() {
+  const m = new Date().getMonth() + 1;
+  if (m >= 6 && m <= 10) return "kharif";
+  if (m >= 10 || m <= 3) return "rabi";
+  return "zaid";
+}
+
+/* ══ Season select ══ */
+function selectSeason(el) {
+  document.querySelectorAll(".season-pill").forEach(p => p.classList.remove("active"));
+  if (el) el.classList.add("active");
+  const ds = el ? el.dataset.season : currentSeason;
+  document.querySelectorAll(".drawer-season-pill").forEach(p => p.classList.remove("active"));
+  const dp = document.querySelector(`.drawer-season-pill[data-season="${ds}"]`);
+  if (dp) dp.classList.add("active");
+  currentSeason = ds;
+  document.getElementById("statusLabel").textContent = "AI active · " + (seasonIcons[ds] || "🌾");
+  renderChips();
+}
+
+function renderChips() {
+  const container = document.getElementById("qp-chips");
+  if (!container) return;
+  container.innerHTML = "";
+  seasonData[currentSeason].chips.forEach((chip, i) => {
+    const div = document.createElement("div");
+    div.className = "qp-chip";
+    div.style.animationDelay = (i * 0.05) + "s";
+    div.textContent = chip.icon + " " + chip.text;
+    div.onclick = () => quickAndCloseSidebar(chip.q);
+    container.appendChild(div);
+  });
+}
+
+/* ══ Sidebar (tablet) ══ */
+function toggleSidebar() {
+  const sb = document.getElementById("sidebar");
+  const bd = document.getElementById("sidebarBackdrop");
+  sb.classList.toggle("open");
+  bd.classList.toggle("open");
+}
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebarBackdrop").classList.remove("open");
+}
+document.getElementById("sidebarBackdrop").addEventListener("click", closeSidebar);
+window.addEventListener("resize", () => { if (window.innerWidth > 900) closeSidebar(); });
+
+function quickAndCloseSidebar(text) {
+  document.getElementById("message").value = text;
+  document.getElementById("send").click();
+  closeSidebar();
+}
+
+/* ══ Mobile bottom nav ══ */
+function showMobileTab(tab) {
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  if (tab === "chat") {
+    document.getElementById("navChat").classList.add("active");
+  } else if (tab === "schemes") {
+    document.getElementById("navSchemes").classList.add("active");
+    document.getElementById("message").value = "What government schemes and subsidies are available for farmers in 2024-25?";
+    document.getElementById("send").click();
+    setTimeout(() => {
+      document.getElementById("navChat").classList.add("active");
+      document.getElementById("navSchemes").classList.remove("active");
+    }, 300);
+  }
+}
+
+/* ══ Mobile Drawer ══ */
+function openMobileDrawer(type) {
+  const drawer   = document.getElementById("mobileDrawer");
+  const backdrop = document.getElementById("drawerBackdrop");
+  const title    = document.getElementById("drawerTitle");
+  const body     = document.getElementById("drawerBody");
+
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  if (type === "menu") document.getElementById("navMenu").classList.add("active");
+  if (type === "lang") document.getElementById("navLang").classList.add("active");
+
+  if (type === "menu") {
+    title.textContent = "Menu";
+    body.innerHTML = buildMenuDrawer();
+    body.querySelectorAll(".drawer-season-pill").forEach(pill => {
+      if (pill.dataset.season === currentSeason) pill.classList.add("active");
+      pill.addEventListener("click", () => {
+        const sidebarPill = document.querySelector(`.season-pill[data-season="${pill.dataset.season}"]`);
+        selectSeason(sidebarPill);
+        closeMobileDrawer();
+      });
+    });
+    body.querySelectorAll(".drawer-card[data-q]").forEach(card => {
+      card.addEventListener("click", () => {
+        const q = card.dataset.q; closeMobileDrawer();
+        setTimeout(() => { document.getElementById("message").value = q; document.getElementById("send").click(); }, 300);
+      });
+    });
+    body.querySelectorAll(".drawer-chip[data-q]").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const q = chip.dataset.q; closeMobileDrawer();
+        setTimeout(() => { document.getElementById("message").value = q; document.getElementById("send").click(); }, 300);
+      });
+    });
+  } else if (type === "lang") {
+    title.textContent = "Language";
+    body.innerHTML = buildLangDrawer();
+    body.querySelectorAll(".drawer-lang-item").forEach(item => {
+      item.addEventListener("click", () => {
+        selectedLang = item.dataset.code;
+        body.querySelectorAll(".drawer-lang-item").forEach(el => el.classList.remove("active"));
+        item.classList.add("active");
+        document.querySelector(".lang-btn .lang-name").textContent = item.dataset.name;
+        closeMobileDrawer();
+        loadGreeting();
+      });
+    });
+  }
+
+  backdrop.classList.add("open");
+  drawer.classList.add("open");
+}
+
+function closeMobileDrawer() {
+  document.getElementById("mobileDrawer").classList.remove("open");
+  document.getElementById("drawerBackdrop").classList.remove("open");
+  document.querySelectorAll(".nav-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById("navChat").classList.add("active");
+}
+document.getElementById("drawerBackdrop").addEventListener("click", closeMobileDrawer);
+
+/* ══ Drawer builders ══ */
+function buildMenuDrawer() {
+  const chips = seasonData[currentSeason].chips;
+  const chipsHTML = chips.map(c => `<div class="drawer-chip" data-q="${c.q}">${c.icon} ${c.text}</div>`).join("");
+  return `
+    <div class="drawer-section-title">Season</div>
+    <div class="drawer-season-strip">
+      <div class="drawer-season-pill" data-season="winter"><span class="ds-icon">❄️</span><span class="ds-name">Winter</span></div>
+      <div class="drawer-season-pill" data-season="rabi"><span class="ds-icon">🌾</span><span class="ds-name">Rabi</span></div>
+      <div class="drawer-season-pill" data-season="kharif"><span class="ds-icon">🌧️</span><span class="ds-name">Kharif</span></div>
+      <div class="drawer-season-pill" data-season="zaid"><span class="ds-icon">☀️</span><span class="ds-name">Zaid</span></div>
+    </div>
+    <div class="drawer-section-title">Field Overview</div>
+    <div class="drawer-cards-grid">
+      <div class="drawer-card" data-q="What crop should I plant this season?">
+        <div class="drawer-card-icon">🌱</div><div><div class="drawer-card-label">Crop Advice</div><div class="drawer-card-sub">Season guidance</div></div>
+      </div>
+      <div class="drawer-card" data-q="How do I treat yellowing leaves on my wheat crop?">
+        <div class="drawer-card-icon">🪲</div><div><div class="drawer-card-label">Pest & Disease</div><div class="drawer-card-sub">Identify & treat</div></div>
+      </div>
+      <div class="drawer-card" data-q="What are the best irrigation practices for my region?">
+        <div class="drawer-card-icon">💧</div><div><div class="drawer-card-label">Irrigation</div><div class="drawer-card-sub">Water management</div></div>
+      </div>
+      <div class="drawer-card" data-q="What government schemes and subsidies are available for farmers in 2024-25?">
+        <div class="drawer-card-icon">🏛️</div><div><div class="drawer-card-label">Govt Schemes</div><div class="drawer-card-sub">Subsidies & aid</div></div>
+      </div>
+      <div class="drawer-card" data-q="Explain Pradhan Mantri Fasal Bima Yojana and how to claim crop insurance.">
+        <div class="drawer-card-icon">🛡️</div><div><div class="drawer-card-label">Insurance Help</div><div class="drawer-card-sub">Claim & coverage</div></div>
+      </div>
+      <div class="drawer-card" data-q="What are current market prices and mandi rates?">
+        <div class="drawer-card-icon">📈</div><div><div class="drawer-card-label">Mandi Prices</div><div class="drawer-card-sub">Live market rates</div></div>
+      </div>
+    </div>
+    <div class="drawer-section-title">Quick Ask</div>
+    <div class="drawer-chips">${chipsHTML}</div>`;
+}
+
+function buildLangDrawer() {
+  return Object.entries(langMap).map(([name, code]) => `
+    <div class="drawer-lang-item ${code === selectedLang ? 'active' : ''}" data-code="${code}" data-name="${name}">
+      ${name}${code === selectedLang ? '<span class="check">✓</span>' : ''}
+    </div>`).join("");
+}
+
+/* ══ Helpers ══ */
+function now() { return new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}); }
+function scrollBottom() { const b = document.getElementById("chatbox"); b.scrollTop = b.scrollHeight; }
+
+/* ══ Messages ══ */
+function addMessage(sender, text) {
+  const isUser = sender === "You";
+  const avHTML = isUser ? `<div class="avatar user">👤</div>` : `<div class="avatar ai">🌿</div>`;
+  const row = document.createElement("div");
+  row.className = "msg-row" + (isUser ? " user" : "");
+  row.innerHTML = `
+    ${!isUser ? avHTML : ""}
+    <div>
+      <div class="bubble ${isUser ? "user" : "ai"}">${text}</div>
+      <div class="bubble-time" style="text-align:${isUser?"right":"left"}">${now()}</div>
+    </div>
+    ${isUser ? avHTML : ""}`;
+  document.getElementById("chatbox").appendChild(row);
+  scrollBottom();
+}
+
+function showTyping() {
+  const row = document.createElement("div");
+  row.className = "msg-row"; row.id = "typing-row";
+  row.innerHTML = `<div class="avatar ai">🌿</div>
+    <div class="typing-bubble"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  document.getElementById("chatbox").appendChild(row);
+  scrollBottom();
+}
+function hideTyping() { const t=document.getElementById("typing-row"); if(t) t.remove(); }
+
+/* ══ Language menu ══ */
+document.getElementById("langToggle").addEventListener("click", e => {
+  e.stopPropagation();
+  const m = document.getElementById("langMenu");
+  const open = m.style.display === "block";
+  m.style.display = open ? "none" : "block";
+  document.getElementById("langToggle").classList.toggle("open", !open);
+});
+document.addEventListener("click", () => {
+  document.getElementById("langMenu").style.display = "none";
+  document.getElementById("langToggle").classList.remove("open");
+});
+
+async function loadLanguages() {
+  const fallback = {
+    "English":"en-IN","Hindi":"hi-IN","Odia":"or-IN","Bengali":"bn-IN",
+    "Gujarati":"gu-IN","Kannada":"kn-IN","Malayalam":"ml-IN","Marathi":"mr-IN",
+    "Punjabi":"pa-IN","Tamil":"ta-IN","Telugu":"te-IN","Urdu":"ur-IN",
+    "Assamese":"as-IN","Bhojpuri":"bho-IN"
+  };
+  try {
+    const res = await fetch('/lang/languages');
+    const data = await res.json();
+    langMap = data; populateLangMenu(data);
+  } catch {
+    langMap = fallback; populateLangMenu(fallback);
+  }
+}
+
+function populateLangMenu(data) {
+  const menu = document.getElementById("langMenu");
+  menu.innerHTML = "";
+  Object.entries(data).forEach(([lang, code], i) => {
+    const div = document.createElement("div");
+    div.className = "lang-item" + (i === 0 ? " active" : "");
+    div.textContent = lang + (i === 0 ? " ✓" : "");
+    div.dataset.code = code;
+    div.addEventListener("click", () => {
+      menu.querySelectorAll(".lang-item").forEach(el => {
+        el.classList.remove("active");
+        el.textContent = el.textContent.replace(" ✓","");
+      });
+      div.classList.add("active");
+      div.textContent += " ✓";
+      selectedLang = code;
+      document.querySelector(".lang-btn .lang-name").textContent = lang;
+      menu.style.display = "none";
+      document.getElementById("langToggle").classList.remove("open");
+      loadGreeting();
+    });
+    menu.appendChild(div);
+  });
+}
+
+/* ══ Greeting ══ */
+async function loadGreeting() {
+  try {
+    const res  = await fetch(`/greet/greet?lang=${selectedLang}`);
+    const data = await res.json();
+    document.querySelector(".welcome-card")?.remove();
+    document.getElementById("chatbox").innerHTML = "";
+    addMessage("AI", data.message);
+  } catch { /* keep welcome card */ }
+}
+
+/* ══ Send ══ */
+async function sendMessage() {
+  const input = document.getElementById("message");
+  const msg   = input.value.trim();
+  if (!msg) return;
+  addMessage("You", msg);
+  input.value = "";
+  showTyping();
+  try {
+    const res  = await fetch("/chat", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({message: msg, language: selectedLang})
+    });
+    const data = await res.json();
+    hideTyping();
+    addMessage("AI", data.response);
+  } catch {
+    hideTyping();
+    addMessage("AI", "⚠️ Unable to connect. Please check your internet and try again.");
+  }
+}
+document.getElementById("send").addEventListener("click", sendMessage);
+document.getElementById("message").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+/* ════════════════════════════════════════════
+   VOICE — ORB OVERLAY + REALTIME AUDIO BARS
+════════════════════════════════════════════ */
+
+/* Start AudioContext + analyser, connect mic stream */
+async function startAudioVisualiser(stream) {
+  try {
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)();
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 64;
+    analyser.smoothingTimeConstant = 0.75;
+    const source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    micStream = stream;
+    animateBars();
+  } catch(e) { console.warn("AudioContext error:", e); }
+}
+
+function animateBars() {
+  const bars      = document.querySelectorAll(".orb-bar");
+  const barsDiv   = document.getElementById("orbBars");
+  const bufLen    = analyser.frequencyBinCount; // 32 bins
+  const dataArr   = new Uint8Array(bufLen);
+  const numBars   = bars.length; // 11
+
+  barsDiv.classList.add("live");
+
+  function draw() {
+    analyser.getByteFrequencyData(dataArr);
+    // Map 32 freq bins → 11 bars (use lower half for voice)
+    for (let i = 0; i < numBars; i++) {
+      const binIndex = Math.floor((i / numBars) * (bufLen * 0.6)); // voice freqs
+      const raw  = dataArr[binIndex] / 255;                        // 0..1
+      const minH = 4, maxH = 44;
+      const h    = minH + raw * (maxH - minH);
+      bars[i].style.height = h + "px";
+      // Colour intensity
+      const g = Math.floor(140 + raw * 72);
+      bars[i].style.background = `linear-gradient(180deg, rgb(100,${g},40), rgba(122,182,72,.25))`;
+    }
+    animFrameId = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function stopAudioVisualiser() {
+  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+  const barsDiv = document.getElementById("orbBars");
+  barsDiv.classList.remove("live");
+  // Reset bar heights
+  document.querySelectorAll(".orb-bar").forEach(b => { b.style.height = ""; b.style.background = ""; });
+  if (micStream)  { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (audioCtx)   { audioCtx.close().catch(()=>{}); audioCtx = null; }
+  analyser = null;
+}
+
+function showVoiceOverlay() {
+  document.getElementById("voiceOverlay").classList.add("active");
+  document.getElementById("orbLabel").textContent      = "Listening…";
+  document.getElementById("orbTranscript").textContent = "";
+}
+
+function hideVoiceOverlay() {
+  document.getElementById("voiceOverlay").classList.remove("active");
+  document.getElementById("orbTranscript").textContent = "";
+  stopAudioVisualiser();
+}
+
+/* Mic button */
+document.getElementById("mic").addEventListener("click", function () {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert("Speech recognition not supported. Please try Chrome or Edge."); return; }
+
+  // If already listening — cancel
+  if (activeRecog) {
+    activeRecog.abort();
+    activeRecog = null;
+    this.classList.remove("mic-active");
+    hideVoiceOverlay();
+    return;
+  }
+
+  const micBtn      = this;
+  const recognition = new SR();
+  recognition.lang  = selectedLang;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
+  recognition.continuous = false;
+
+  activeRecog = recognition;
+
+  /* Request mic access first for the visualiser */
+  navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => startAudioVisualiser(stream))
+    .catch(() => { /* no visualiser — that's OK */ });
+
+  recognition.start();
+  showVoiceOverlay();
+  micBtn.classList.add("mic-active");
+
+  recognition.onresult = e => {
+    let interim = "", final = "";
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      e.results[i].isFinal ? (final += t) : (interim += t);
+    }
+    const shown = final || interim;
+    document.getElementById("orbTranscript").textContent = shown;
+    if (final) document.getElementById("message").value  = final;
+  };
+
+  recognition.onspeechstart = () => {
+    document.getElementById("orbLabel").textContent = "Hearing you…";
+  };
+
+  recognition.onspeechend = () => {
+    document.getElementById("orbLabel").textContent = "Processing…";
+  };
+
+  recognition.onend = () => {
+    activeRecog = null;
+    micBtn.classList.remove("mic-active");
+    hideVoiceOverlay();
+    const val = document.getElementById("message").value.trim();
+    if (val) sendMessage();
+  };
+
+  recognition.onerror = e => {
+    activeRecog = null;
+    micBtn.classList.remove("mic-active");
+    hideVoiceOverlay();
+    if (e.error !== "aborted") {
+      document.getElementById("message").placeholder = "Mic error — try again";
+      setTimeout(() => { document.getElementById("message").placeholder = "Ask about crops, diseases, soil, schemes…"; }, 3000);
+    }
+  };
+});
+
+/* Cancel button inside overlay */
+document.getElementById("orbCancel").addEventListener("click", () => {
+  if (activeRecog) { activeRecog.abort(); activeRecog = null; }
+  document.getElementById("mic").classList.remove("mic-active");
+  hideVoiceOverlay();
+});
+
+/* ══ TTS ══ */
+async function speak(text) {
+  if (!text) return;
+  try {
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+    const res = await fetch("/tts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({text,language:selectedLang})});
+    if (!res.ok) throw new Error();
+    const blob = await res.blob();
+    currentAudio = new Audio(URL.createObjectURL(blob));
+    currentAudio.onended = () => { currentAudio = null; };
+    await currentAudio.play();
+  } catch {
+    if ("speechSynthesis" in window) {
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = selectedLang;
+      window.speechSynthesis.speak(utt);
+    }
+  }
+}
+document.getElementById("speaker").addEventListener("click", () => {
+  const msgs = document.querySelectorAll(".bubble.ai");
+  if (!msgs.length) return;
+  speak(msgs[msgs.length-1].textContent.trim());
+});
+
+/* ══ Weather ══ */
+async function loadWeather() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(async pos => {
+    try {
+      const {latitude:lat,longitude:lon} = pos.coords;
+      const res  = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=relativehumidity_2m,windspeed_10m`);
+      const data = await res.json();
+      const cw   = data.current_weather;
+      document.getElementById("wTemp").textContent     = Math.round(cw.temperature)+"°C";
+      document.getElementById("wWind").textContent     = Math.round(cw.windspeed)+" km/h";
+      document.getElementById("wHumidity").textContent = (data.hourly?.relativehumidity_2m?.[0]??"--")+"%";
+      const wc = cw.weathercode;
+      const emoji = wc===0?"☀️":wc<=3?"⛅":wc<=49?"🌫️":wc<=69?"🌧️":wc<=79?"❄️":"⛈️";
+      document.getElementById("wIcon").textContent  = emoji;
+      document.getElementById("wLabel").textContent = "Current weather · Your location";
+    } catch { document.getElementById("wLabel").textContent = "Weather unavailable"; }
+  }, () => { document.getElementById("wLabel").textContent = "Location access denied"; });
+}
+
+/* ══ INIT ══ */
+window.onload = async function () {
+  currentSeason = getCurrentSeason();
+  const pill = document.querySelector(`.season-pill[data-season="${currentSeason}"]`);
+  if (pill) selectSeason(pill); else renderChips();
+  await loadLanguages();
+  setTimeout(loadGreeting, 700);
+  loadWeather();
+  if (window.innerWidth < 600) {
+    ["p3","p4"].forEach(id => { const el = document.getElementById(id); if(el) el.style.display="none"; });
+  }
+};
+</script>
+</body>
+</html>

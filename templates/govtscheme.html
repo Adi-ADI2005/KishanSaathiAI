@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Kishan Saathi</title>
+    <link rel="icon" type="image/png" href="/static/logo.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --bg-deep:      #060e08;
+      --bg-mid:       #0b1a0e;
+      --green-900:    #052e0f;
+      --green-800:    #0a4a1e;
+      --green-700:    #0d6b2b;
+      --emerald:      #10b981;
+      --emerald-lt:   #34d399;
+      --emerald-dim:  #059669;
+      --emerald-glow: rgba(16,185,129,.35);
+      --gold:         #f4c430;
+      --gold-dim:     rgba(244,196,48,.15);
+      --glass-bg:     rgba(10,40,18,.55);
+      --glass-border: rgba(16,185,129,.18);
+      --glass-shadow: 0 8px 32px rgba(0,0,0,.45);
+      --radius:       16px;
+      --t:            .3s cubic-bezier(.4,0,.2,1);
+      --safe-bottom:  env(safe-area-inset-bottom, 0px);
+      --safe-top:     env(safe-area-inset-top, 0px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg-deep);
+      color: #d1f0dc;
+      min-height: 100vh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1,h2,h3,h4,h5,h6 { font-family: 'Syne', sans-serif; }
+
+    /* ── MESH BG ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 70% 55% at 15% 10%, rgba(16,185,129,.13) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 70% at 85% 85%, rgba(5,46,15,.45) 0%, transparent 60%),
+        radial-gradient(ellipse 90% 50% at 50% 50%, rgba(11,26,14,.92) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* ── PARTICLES ── */
+    #particles-canvas {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none; opacity: .45;
+    }
+
+    /* ── GLASS ── */
+    .glass {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(18px) saturate(160%);
+      -webkit-backdrop-filter: blur(18px) saturate(160%);
+      box-shadow: var(--glass-shadow);
+    }
+
+    /* ════════════════════════════════════════
+       NAVBAR
+    ════════════════════════════════════════ */
+    .site-nav {
+      position: sticky; top: 0; z-index: 1000;
+      height: 56px;
+      display: flex; align-items: center;
+      padding: 0 clamp(12px, 4vw, 24px);
+      padding-top: var(--safe-top);
+      background: rgba(6,14,8,.92);
+      border-bottom: 1px solid var(--glass-border);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+    }
+
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 600;
+      color: var(--emerald-lt);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 50px;
+      background: rgba(16,185,129,.1);
+      border: 1px solid rgba(16,185,129,.25);
+      transition: all var(--t);
+      white-space: nowrap;
+      touch-action: manipulation;
+    }
+    .btn-back:hover, .btn-back:active {
+      background: rgba(16,185,129,.2);
+      border-color: var(--emerald);
+      color: #fff;
+    }
+
+    /* ════════════════════════════════════════
+       HERO
+    ════════════════════════════════════════ */
+    .schemes-hero {
+      position: relative; z-index: 1;
+      padding: clamp(36px, 8vw, 72px) clamp(16px, 5vw, 28px) clamp(36px, 6vw, 56px);
+      text-align: center;
+      overflow: hidden;
+    }
+    .schemes-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(16,185,129,.09) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-icon {
+      width: clamp(56px, 10vw, 72px);
+      height: clamp(56px, 10vw, 72px);
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--green-700), var(--emerald));
+      display: flex; align-items: center; justify-content: center;
+      font-size: clamp(26px, 5vw, 34px);
+      margin: 0 auto 20px;
+      box-shadow: 0 0 40px var(--emerald-glow), 0 0 80px rgba(16,185,129,.12);
+      animation: floatIcon 3.5s ease-in-out infinite;
+    }
+    @keyframes floatIcon {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+
+    .hero-title {
+      font-size: clamp(22px, 5.5vw, 44px);
+      font-weight: 800;
+      color: #d1f0dc;
+      margin-bottom: 14px;
+      line-height: 1.15;
+    }
+    .hero-title span {
+      background: linear-gradient(90deg, var(--emerald), var(--emerald-lt), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(13px, 2vw, 16px);
+      color: #6b9e7a;
+      max-width: 520px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
+      padding: 0 8px;
+    }
+
+    .hero-stats {
+      display: flex; justify-content: center;
+      gap: clamp(10px, 3vw, 28px);
+      flex-wrap: wrap;
+      padding: 0 8px;
+    }
+    .hero-stat {
+      text-align: center;
+      padding: clamp(10px, 2vw, 14px) clamp(14px, 3vw, 22px);
+      border-radius: 12px;
+      background: rgba(10,40,18,.5);
+      border: 1px solid var(--glass-border);
+      flex: 1;
+      min-width: 90px;
+      max-width: 160px;
+    }
+    .hero-stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(18px, 4vw, 24px);
+      font-weight: 800;
+      color: var(--emerald-lt);
+    }
+    .hero-stat-label {
+      font-size: clamp(9px, 1.5vw, 11px);
+      color: #5a9a6e;
+      font-family: 'Syne', sans-serif;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* ════════════════════════════════════════
+       FILTER BAR
+    ════════════════════════════════════════ */
+    .filter-bar {
+      position: relative; z-index: 1;
+      padding: 0 clamp(16px, 4vw, 28px) clamp(20px, 4vw, 36px);
+      display: flex; align-items: center; gap: 10px;
+      flex-wrap: wrap;
+      max-width: 1100px; margin: 0 auto;
+    }
+
+    .search-wrap {
+      flex: 1 1 180px;
+      position: relative;
+      min-width: 0;
+    }
+    .search-wrap i {
+      position: absolute; left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: #3d7a52; font-size: 14px;
+      pointer-events: none;
+    }
+    .search-wrap input {
+      width: 100%;
+      background: rgba(10,40,18,.65);
+      border: 1px solid var(--glass-border);
+      border-radius: 50px;
+      color: #d1f0dc;
+      font-family: 'Lora', serif;
+      font-size: clamp(13px, 2vw, 14px);
+      padding: 12px 18px 12px 42px;
+      outline: none;
+      transition: border-color var(--t), box-shadow var(--t);
+      -webkit-appearance: none;
+    }
+    .search-wrap input:focus {
+      border-color: var(--emerald);
+      box-shadow: 0 0 0 3px rgba(16,185,129,.14);
+    }
+    .search-wrap input::placeholder { color: #3d7a52; }
+
+    .filter-select {
+      background: rgba(10,40,18,.65);
+      border: 1px solid var(--glass-border);
+      border-radius: 50px;
+      color: #8fbfa0;
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(12px, 2vw, 13px);
+      padding: 12px 18px;
+      outline: none; cursor: pointer;
+      transition: border-color var(--t);
+      min-width: 140px;
+      flex-shrink: 0;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235a9a6e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .filter-select:focus { border-color: var(--emerald); }
+    .filter-select option { background: #0b1a0e; color: #d1f0dc; }
+
+    .filter-count {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px; color: #5a9a6e;
+      white-space: nowrap;
+      padding: 10px 14px;
+      background: rgba(16,185,129,.07);
+      border: 1px solid var(--glass-border);
+      border-radius: 50px;
+      flex-shrink: 0;
+    }
+    .filter-count span { color: var(--emerald); font-weight: 700; }
+
+    /* ════════════════════════════════════════
+       SCHEMES GRID
+    ════════════════════════════════════════ */
+    .schemes-grid-wrap {
+      position: relative; z-index: 1;
+      padding: 0 clamp(16px, 4vw, 28px) clamp(48px, 8vw, 80px);
+      max-width: 1200px; margin: 0 auto;
+    }
+
+    .schemes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: clamp(14px, 2.5vw, 22px);
+    }
+
+    /* ── 2-col: tablet ── */
+    @media (max-width: 1023px) {
+      .schemes-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* ── 1-col: mobile ── */
+    @media (max-width: 599px) {
+      .schemes-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+    }
+
+    .scheme-card {
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: transform var(--t), box-shadow var(--t), border-color var(--t);
+      animation: fadeUp .5s ease both;
+      position: relative;
+      will-change: transform;
+    }
+
+    @media (hover: hover) {
+      .scheme-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 50px rgba(0,0,0,.55), 0 0 36px var(--emerald-glow);
+        border-color: rgba(16,185,129,.4);
+      }
+    }
+
+    .scheme-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(16,185,129,.05), transparent 60%);
+      pointer-events: none;
+    }
+
+    .scheme-card-bar {
+      height: 4px;
+      background: linear-gradient(90deg, var(--emerald), var(--emerald-lt), var(--gold));
+      flex-shrink: 0;
+    }
+
+    .scheme-card-body {
+      padding: clamp(16px, 3vw, 22px);
+      padding-bottom: 0;
+      flex: 1;
+    }
+
+    /* Tags */
+    .scheme-tags {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .tag {
+      font-family: 'Syne', sans-serif;
+      font-size: 9px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 20px;
+    }
+    .tag-new      { background: rgba(16,185,129,.15); color: var(--emerald); border: 1px solid rgba(16,185,129,.3); }
+    .tag-popular  { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(244,196,48,.35); }
+    .tag-state    { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+    .tag-central  { background: rgba(167,139,250,.12); color: #a78bfa; border: 1px solid rgba(167,139,250,.3); }
+    .tag-subsidy  { background: rgba(52,211,153,.1); color: var(--emerald-lt); border: 1px solid rgba(52,211,153,.3); }
+    .tag-loan     { background: rgba(251,191,36,.1); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+    .tag-insurance{ background: rgba(248,113,113,.1); color: #fb7185; border: 1px solid rgba(248,113,113,.3); }
+
+    .scheme-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--green-800), var(--green-700));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(16,185,129,.2);
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+      flex-shrink: 0;
+    }
+
+    .scheme-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(14px, 2vw, 16px);
+      font-weight: 700;
+      color: #d1f0dc;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .scheme-desc {
+      font-size: clamp(12px, 1.5vw, 13px);
+      color: #7aae92;
+      line-height: 1.75;
+      margin-bottom: 16px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Benefits */
+    .scheme-benefits { margin-bottom: 14px; }
+    .benefits-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--emerald); margin-bottom: 7px;
+    }
+    .benefit-item {
+      display: flex; align-items: flex-start; gap: 7px;
+      font-size: clamp(11px, 1.5vw, 12px);
+      color: #8fbfa0;
+      margin-bottom: 4px; line-height: 1.5;
+    }
+    .benefit-item i { color: var(--emerald); font-size: 11px; margin-top: 2px; flex-shrink: 0; }
+
+    /* Eligibility */
+    .scheme-eligibility {
+      background: rgba(16,185,129,.06);
+      border: 1px solid rgba(16,185,129,.12);
+      border-radius: 10px;
+      padding: 10px 13px;
+      margin-bottom: 18px;
+    }
+    .elig-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: #5a9a6e; margin-bottom: 4px;
+    }
+    .elig-text {
+      font-size: clamp(11px, 1.5vw, 12px);
+      color: #7aae92; line-height: 1.5;
+    }
+
+    /* Card footer */
+    .scheme-card-footer {
+      padding: clamp(12px, 2.5vw, 16px) clamp(16px, 3vw, 22px) clamp(16px, 3vw, 22px);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px;
+      border-top: 1px solid rgba(16,185,129,.08);
+      margin-top: auto;
+      flex-wrap: wrap;
+    }
+
+    .btn-visit {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px clamp(16px, 3vw, 22px);
+      border-radius: 50px;
+      background: linear-gradient(135deg, var(--green-700), var(--emerald));
+      border: none;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(12px, 1.8vw, 13px);
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--t);
+      box-shadow: 0 4px 16px var(--emerald-glow);
+      white-space: nowrap;
+      flex: 1;
+      justify-content: center;
+      touch-action: manipulation;
+      min-height: 44px;
+    }
+    @media (hover: hover) {
+      .btn-visit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px var(--emerald-glow);
+        color: #fff;
+      }
+    }
+    .btn-visit:active { transform: scale(.97); }
+
+    .btn-save {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: rgba(16,185,129,.08);
+      border: 1px solid rgba(16,185,129,.2);
+      display: flex; align-items: center; justify-content: center;
+      color: #5a9a6e; font-size: 16px;
+      cursor: pointer; transition: all var(--t);
+      flex-shrink: 0;
+      touch-action: manipulation;
+    }
+    @media (hover: hover) {
+      .btn-save:hover {
+        background: rgba(16,185,129,.18);
+        color: var(--emerald);
+        border-color: var(--emerald);
+      }
+    }
+    .btn-save:active { transform: scale(.93); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: clamp(40px, 10vw, 80px) 20px;
+    }
+    .empty-icon {
+      width: 72px; height: 72px; border-radius: 18px;
+      background: rgba(16,185,129,.07);
+      border: 1px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 34px; margin: 0 auto 18px;
+    }
+    .empty-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 16px; color: #5a9a6e; margin-bottom: 6px;
+    }
+    .empty-sub { font-size: 13px; color: #3d7a52; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .scheme-card:nth-child(1) { animation-delay: .04s; }
+    .scheme-card:nth-child(2) { animation-delay: .09s; }
+    .scheme-card:nth-child(3) { animation-delay: .14s; }
+    .scheme-card:nth-child(4) { animation-delay: .19s; }
+    .scheme-card:nth-child(5) { animation-delay: .24s; }
+    .scheme-card:nth-child(6) { animation-delay: .29s; }
+    .scheme-card:nth-child(7) { animation-delay: .34s; }
+    .scheme-card:nth-child(8) { animation-delay: .38s; }
+
+    /* ════════════════════════════════════════
+       FOOTER
+    ════════════════════════════════════════ */
+    .site-footer {
+      position: relative; z-index: 1;
+      background: rgba(6,14,8,.9);
+      border-top: 1px solid var(--glass-border);
+      padding: clamp(28px, 5vw, 40px) clamp(16px, 4vw, 28px) clamp(20px, 4vw, 28px);
+      padding-bottom: calc(clamp(20px, 4vw, 28px) + var(--safe-bottom));
+    }
+    .footer-inner {
+      max-width: 1100px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.6fr repeat(3, 1fr);
+      gap: clamp(20px, 4vw, 36px);
+    }
+
+    /* tablet footer */
+    @media (max-width: 860px) {
+      .footer-inner {
+        grid-template-columns: 1fr 1fr;
+      }
+      .footer-brand { grid-column: 1 / -1; }
+    }
+
+    /* mobile footer */
+    @media (max-width: 480px) {
+      .footer-inner {
+        grid-template-columns: 1fr 1fr;
+      }
+      .footer-brand { grid-column: 1 / -1; }
+    }
+
+    .footer-brand-logo {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--green-700), var(--emerald));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 12px;
+      box-shadow: 0 0 16px var(--emerald-glow);
+    }
+    .footer-brand-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px; font-weight: 700;
+      color: var(--emerald-lt); margin-bottom: 7px;
+    }
+    .footer-brand-desc {
+      font-size: 13px; color: #5a9a6e; line-height: 1.7;
+      margin-bottom: 16px;
+    }
+    .footer-socials { display: flex; gap: 8px; }
+    .social-btn {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: rgba(16,185,129,.08);
+      border: 1px solid var(--glass-border);
+      display: flex; align-items: center; justify-content: center;
+      color: #5a9a6e; font-size: 14px;
+      text-decoration: none;
+      transition: all var(--t);
+      touch-action: manipulation;
+    }
+    .social-btn:hover { background: var(--emerald); color: #000; border-color: var(--emerald); }
+
+    .footer-col-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--emerald); margin-bottom: 14px;
+    }
+    .footer-links { list-style: none; }
+    .footer-links li { margin-bottom: 9px; }
+    .footer-links a {
+      font-size: 13px; color: #5a9a6e;
+      text-decoration: none; transition: color var(--t);
+      display: flex; align-items: center; gap: 7px;
+      min-height: 32px;
+    }
+    .footer-links a:hover { color: var(--emerald-lt); }
+    .footer-links a i { font-size: 11px; }
+
+    .footer-bottom {
+      max-width: 1100px; margin: 24px auto 0;
+      padding-top: 18px;
+      border-top: 1px solid rgba(16,185,129,.08);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 8px;
+    }
+    .footer-bottom p { font-size: 12px; color: #3d7a52; }
+    .footer-bottom span { color: var(--emerald); }
+
+    /* ── MOBILE BOTTOM SAFE AREA ── */
+    @media (max-width: 599px) {
+      .scheme-card-footer {
+        flex-direction: row;
+      }
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--green-700); border-radius: 4px; }
+
+    /* ── TABLET SPECIFIC TWEAKS ── */
+    @media (min-width: 600px) and (max-width: 1023px) {
+      .filter-bar {
+        flex-wrap: nowrap;
+      }
+      .filter-select {
+        min-width: 130px;
+      }
+    }
+
+    /* ── FOCUS RING ACCESSIBILITY ── */
+    .btn-visit:focus-visible,
+    .btn-save:focus-visible,
+    .btn-back:focus-visible,
+    .search-wrap input:focus-visible,
+    .filter-select:focus-visible {
+      outline: 2px solid var(--emerald);
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body>
+
+<canvas id="particles-canvas"></canvas>
+
+<!-- ─── NAVBAR ──────────────────────────────────── -->
+<nav class="site-nav">
+  <a class="btn-back" href="javascript:history.back()">
+    <i class="bi bi-arrow-left"></i> Back
+  </a>
+</nav>
+
+<!-- ─── HERO ─────────────────────────────────────── -->
+<section class="schemes-hero">
+  <div class="hero-icon">🏛️</div>
+  <h1 class="hero-title">
+    Government Schemes<br/>
+    <span>for Farmers</span>
+  </h1>
+  <p class="hero-sub">
+    Explore and apply for beneficial schemes — financial aid, subsidies, crop insurance &amp; more, all in one place.
+  </p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-val" id="hero-count">12+</div>
+      <div class="hero-stat-label">Active Schemes</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">₹6,000</div>
+      <div class="hero-stat-label">Min Annual Aid</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-val">100%</div>
+      <div class="hero-stat-label">Free Access</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FILTER BAR ────────────────────────────────── -->
+<div class="filter-bar">
+  <div class="search-wrap">
+    <i class="bi bi-search"></i>
+    <input type="search" id="schemeSearch" placeholder="Search schemes…" oninput="filterSchemes()" autocomplete="off" />
+  </div>
+  <select class="filter-select" id="schemeFilter" onchange="filterSchemes()">
+    <option value="all">All Categories</option>
+    <option value="central">Central Govt</option>
+    <option value="state">State Govt</option>
+    <option value="subsidy">Subsidy</option>
+    <option value="loan">Loan</option>
+    <option value="insurance">Insurance</option>
+  </select>
+  <div class="filter-count">Showing <span id="scheme-count">0</span> schemes</div>
+</div>
+
+<!-- ─── SCHEMES GRID ──────────────────────────────── -->
+<div class="schemes-grid-wrap">
+  <div class="schemes-grid" id="schemes-grid">
+    <div class="empty-state">
+      <div class="empty-icon">⏳</div>
+      <div class="empty-title">Loading schemes…</div>
+      <div class="empty-sub">Please wait a moment.</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ── PARTICLES ── */
+(function () {
+  const canvas = document.getElementById('particles-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const count = window.innerWidth < 600 ? 28 : 55;
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: Math.random() * 1.8 + .4,
+      dx: (Math.random() - .5) * .3,
+      dy: (Math.random() - .5) * .3,
+      o: Math.random() * .5 + .1
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(16,185,129,${p.o})`;
+      ctx.fill();
+      p.x += p.dx; p.y += p.dy;
+      if (p.x < 0 || p.x > W) p.dx *= -1;
+      if (p.y < 0 || p.y > H) p.dy *= -1;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── SCHEME DATA (demo) ── */
+const DEMO_SCHEMES = [
+  {
+    title: "PM-KISAN Samman Nidhi",
+    description: "Direct income support of ₹6,000 per year to all landholding farmer families in three equal instalments of ₹2,000 each.",
+    icon: "💰", badge: "Popular",
+    categories: ["central", "subsidy"],
+    benefits: ["₹6,000 annual direct transfer", "3 instalments of ₹2,000 each", "No middlemen — direct to bank"],
+    eligibility: "All landholding farmer families with cultivable land, subject to exclusion criteria.",
+    link: "https://pmkisan.gov.in"
+  },
+  {
+    title: "Pradhan Mantri Fasal Bima Yojana",
+    description: "Comprehensive crop insurance scheme providing financial support to farmers suffering crop loss due to unforeseen events.",
+    icon: "🌦️", badge: "Popular",
+    categories: ["central", "insurance"],
+    benefits: ["Low premium rates for farmers", "Coverage for pre & post harvest losses", "Use of technology for quick settlement"],
+    eligibility: "All farmers growing notified crops in notified areas. Compulsory for loanee farmers.",
+    link: "https://pmfby.gov.in"
+  },
+  {
+    title: "Kisan Credit Card (KCC)",
+    description: "Provides farmers with timely credit support from the banking system for their cultivation needs at lower interest rates.",
+    icon: "💳", badge: "New",
+    categories: ["central", "loan"],
+    benefits: ["Credit up to ₹3 lakh at 4% interest", "Flexible repayment", "Coverage for post-harvest expenses"],
+    eligibility: "All farmers, sharecroppers, oral lessees and self help groups involved in farming.",
+    link: "https://agricoop.gov.in"
+  },
+  {
+    title: "Soil Health Card Scheme",
+    description: "Issues soil health cards to farmers with crop-wise recommendations for nutrients and fertilizers to improve productivity.",
+    icon: "🌱",
+    categories: ["central", "subsidy"],
+    benefits: ["Free soil testing every 2 years", "Crop-wise fertilizer recommendations", "Reduces input cost"],
+    eligibility: "All farmers. Cards issued by State Agriculture Departments after soil testing.",
+    link: "https://soilhealth.dac.gov.in"
+  },
+  {
+    title: "PM Krishi Sinchai Yojana",
+    description: "Har Khet Ko Pani — ensuring access to water for every field and improving water use efficiency to promote sustainable agriculture.",
+    icon: "💧", badge: "New",
+    categories: ["central", "subsidy"],
+    benefits: ["Drip & sprinkler subsidy up to 55%", "Expansion of cultivable area under irrigation", "End-to-end irrigation solutions"],
+    eligibility: "All categories of farmers with operational landholdings. Priority to small & marginal farmers.",
+    link: "https://pmksy.gov.in"
+  },
+  {
+    title: "eNAM — National Agriculture Market",
+    description: "Pan-India electronic trading portal networking existing APMC mandis to create a unified national market for agricultural commodities.",
+    icon: "🏪",
+    categories: ["central"],
+    benefits: ["Better price discovery", "Online payment & transparent bidding", "Access to buyers across India"],
+    eligibility: "All registered farmers in states that have joined eNAM platform.",
+    link: "https://enam.gov.in"
+  },
+  {
+    title: "Paramparagat Krishi Vikas Yojana",
+    description: "Promotes organic farming through cluster-based approach to support farmers in producing chemical-free agricultural products.",
+    icon: "🌿", badge: "New",
+    categories: ["central", "subsidy"],
+    benefits: ["₹50,000/hectare financial assistance", "Organic certification support", "Premium price linkage"],
+    eligibility: "Farmer groups of at least 50 farmers forming a cluster of 50 acres minimum.",
+    link: "https://pgsindia-ncof.gov.in"
+  },
+  {
+    title: "Rashtriya Krishi Vikas Yojana",
+    description: "Holistic development of agriculture and allied sectors to increase agricultural GDP growth rate through state-specific planning.",
+    icon: "📊",
+    categories: ["central", "subsidy"],
+    benefits: ["Infrastructure development support", "Flexible project-based funding", "State-designed agricultural programmes"],
+    eligibility: "State governments prepare projects which are funded under RKVY guidelines.",
+    link: "https://rkvy.nic.in"
+  }
+];
+
+let allSchemes = [];
+
+/* ── LOAD ── */
+async function loadSchemes() {
+  const grid = document.getElementById('schemes-grid');
+  try {
+    const res = await fetch('/api/schemes');
+    if (!res.ok) throw new Error('No API');
+    allSchemes = await res.json();
+  } catch {
+    allSchemes = DEMO_SCHEMES;
+  }
+  document.getElementById('hero-count').textContent = allSchemes.length + '+';
+  renderSchemes(allSchemes);
+}
+
+/* ── RENDER ── */
+function renderSchemes(data) {
+  const grid = document.getElementById('schemes-grid');
+  document.getElementById('scheme-count').textContent = data.length;
+
+  if (!data.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">No schemes found</div>
+        <div class="empty-sub">Try another search or category.</div>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = '';
+  data.forEach((scheme, i) => {
+    const badgeTag = scheme.badge === 'New'
+      ? `<span class="tag tag-new">🆕 New</span>`
+      : scheme.badge === 'Popular'
+        ? `<span class="tag tag-popular">🔥 Popular</span>`
+        : '';
+
+    const catTags = (scheme.categories || []).map(cat => ({
+      central:   `<span class="tag tag-central">Central</span>`,
+      state:     `<span class="tag tag-state">State</span>`,
+      subsidy:   `<span class="tag tag-subsidy">Subsidy</span>`,
+      loan:      `<span class="tag tag-loan">Loan</span>`,
+      insurance: `<span class="tag tag-insurance">Insurance</span>`
+    }[cat] || '')).join('');
+
+    const benefitsHTML = (scheme.benefits || []).map(b =>
+      `<div class="benefit-item"><i class="bi bi-check-circle-fill"></i>${b}</div>`
+    ).join('');
+
+    const el = document.createElement('div');
+    el.className = 'scheme-card glass';
+    el.dataset.title = scheme.title.toLowerCase();
+    el.dataset.category = (scheme.categories || []).join(' ');
+    el.style.animationDelay = `${(i % 8) * 0.05 + 0.04}s`;
+
+    el.innerHTML = `
+      <div class="scheme-card-bar"></div>
+      <div class="scheme-card-body">
+        <div class="scheme-tags">${badgeTag}${catTags}</div>
+        <div class="scheme-icon">${scheme.icon || '🌾'}</div>
+        <div class="scheme-title">${scheme.title}</div>
+        <div class="scheme-desc">${scheme.description || ''}</div>
+        ${benefitsHTML ? `<div class="scheme-benefits"><div class="benefits-label">Key Benefits</div>${benefitsHTML}</div>` : ''}
+        ${scheme.eligibility ? `<div class="scheme-eligibility"><div class="elig-label">Eligibility</div><div class="elig-text">${scheme.eligibility}</div></div>` : ''}
+      </div>
+      <div class="scheme-card-footer">
+        <a href="${scheme.link || '#'}" target="_blank" rel="noopener" class="btn-visit">
+          <i class="bi bi-box-arrow-up-right"></i> Visit Scheme
+        </a>
+        <button class="btn-save" aria-label="Bookmark scheme"><i class="bi bi-bookmark"></i></button>
+      </div>`;
+
+    grid.appendChild(el);
+  });
+
+  initBookmarks();
+}
+
+/* ── FILTER ── */
+function filterSchemes() {
+  const query = document.getElementById('schemeSearch').value.toLowerCase().trim();
+  const category = document.getElementById('schemeFilter').value;
+
+  const filtered = allSchemes.filter(s => {
+    const titleMatch = s.title.toLowerCase().includes(query)
+      || (s.description || '').toLowerCase().includes(query);
+    const catMatch = category === 'all' || (s.categories || []).includes(category);
+    return titleMatch && catMatch;
+  });
+  renderSchemes(filtered);
+}
+
+/* ── BOOKMARKS ── */
+function initBookmarks() {
+  document.querySelectorAll('.btn-save').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const icon = this.querySelector('i');
+      const filled = icon.classList.contains('bi-bookmark-fill');
+      icon.classList.toggle('bi-bookmark', filled);
+      icon.classList.toggle('bi-bookmark-fill', !filled);
+      this.style.color = filled ? '' : 'var(--emerald)';
+      this.style.borderColor = filled ? '' : 'var(--emerald)';
+    });
+  });
+}
+
+loadSchemes();
+</script>
+</body>
+</html>

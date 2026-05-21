@@ -107,10 +107,7 @@ body{font-family:'Karla',sans-serif;background:var(--g-deep);color:var(--txt);ov
 .icon-bar{width:20px;height:2.5px;border-radius:100px;background:var(--btn-active-bdr);opacity:0;transform:scaleX(0);transition:opacity .25s,transform .3s cubic-bezier(.34,1.56,.64,1)}
 .icon-btn:hover .icon-bar{opacity:1;transform:scaleX(1)}
 
-/* Coming Soon overlay on icon-btn */
-.icon-btn-soon{position:relative}
-.icon-btn-soon .cs-badge{position:absolute;top:8px;right:6px;font-size:7px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;padding:3px 7px;background:rgba(247,201,72,.18);border:1px solid rgba(247,201,72,.45);border-radius:100px;color:var(--sun);white-space:nowrap;pointer-events:none;animation:csBadgePulse 2s ease-in-out infinite}
-@keyframes csBadgePulse{0%,100%{opacity:.8}50%{opacity:1;box-shadow:0 0 10px rgba(247,201,72,.3)}}
+
 
 .btn-crop{--btn-bg:rgba(46,204,113,.06);--btn-bdr:rgba(46,204,113,.15);--btn-active-bg:rgba(46,204,113,.11);--btn-active-bdr:rgba(46,204,113,.55);--btn-glow:rgba(46,204,113,.18);--btn-hover-fill:radial-gradient(ellipse at 50% 0%,rgba(46,204,113,.12),transparent 70%);--btn-shine:rgba(46,204,113,.9);--btn-lbl:rgba(168,245,194,.5);--btn-lbl-active:#a8f5c2;--icon-shadow:drop-shadow(0 0 8px rgba(46,204,113,.7))}
 .btn-weather{--btn-bg:rgba(56,189,248,.06);--btn-bdr:rgba(56,189,248,.15);--btn-active-bg:rgba(56,189,248,.11);--btn-active-bdr:rgba(56,189,248,.55);--btn-glow:rgba(56,189,248,.18);--btn-hover-fill:radial-gradient(ellipse at 50% 0%,rgba(56,189,248,.12),transparent 70%);--btn-shine:rgba(56,189,248,.9);--btn-lbl:rgba(186,230,253,.5);--btn-lbl-active:#bae6fd;--icon-shadow:drop-shadow(0 0 8px rgba(56,189,248,.7))}
@@ -153,13 +150,6 @@ body{font-family:'Karla',sans-serif;background:var(--g-deep);color:var(--txt);ov
 /* Standard badge (top-right) */
 .feat-card-badge{position:absolute;top:16px;right:16px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 10px;background:rgba(247,201,72,.15);border:1px solid rgba(247,201,72,.3);border-radius:100px;color:var(--sun)}
 
-/* Coming Soon badge variant */
-.feat-card-badge.cs{background:rgba(247,201,72,.18);border-color:rgba(247,201,72,.55);color:var(--sun);animation:csBadgePulse 2s ease-in-out infinite}
-.feat-card-badge.cs-orange{background:rgba(251,146,60,.15);border-color:rgba(251,146,60,.5);color:#fb923c;animation:csBadgePulse 2s ease-in-out infinite}
-
-/* Dimmed card for coming soon */
-.feat-card.dimmed{opacity:.88;pointer-events:auto}
-.feat-card.dimmed .feat-card-arrow{color:rgba(247,201,72,.7)}
 
 /* ─── ABOUT ─── */
 #about{position:relative;z-index:2;padding:110px 0 120px;overflow:hidden}
@@ -522,7 +512,7 @@ textarea.ks-input{resize:vertical;min-height:130px}
         </a>
         <!-- Disease Detection — Coming Soon -->
         <a href="/disease" class="icon-btn btn-disease icon-btn-soon" style="--bi-delay:.23s">
-          <span class="icon-emoji">🔬</span><span class="icon-lbl">Disease<br>Detection</span><span class="icon-bar"></span>
+          <span class="icon-emoji">🔬</span><span class="icon-lbl">Disease<br>Detection</span>
         </a>
         <a href="/govt_scheme" class="icon-btn btn-govt" style="--bi-delay:.29s">
           <span class="icon-emoji">🏛️</span><span class="icon-lbl">Govt<br>Schemes</span><span class="icon-bar"></span>

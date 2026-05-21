@@ -268,9 +268,10 @@ python app.py
 
 Passionate about:
 - Artificial Intelligence
-- Agriculture Technology
+- Macchine Leaning
+- Deep Learning 
 - Full Stack Development
-- Rural Innovation
+
 
 ---
 
